@@ -1,11 +1,16 @@
 Package: melviewr
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
+Title: View and Classify MELODIC Output for ICA+FIX
+Version: 0.0.0.9000
+Author: Andrew Poppe
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Imports: gWidgetsRGtk2,
+    gtools,
+    RColorBrewer,
+    RNifti,
+    grDevices
