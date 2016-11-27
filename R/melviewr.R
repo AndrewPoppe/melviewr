@@ -511,7 +511,7 @@ colorPickerHandler <- function(h, ...) {
     newColor <- colorPicker()
     if (is.na(newColor))
         return()
-    viewr$settings$graphics[h$action] <- newColor
+    viewr$settings$graphics[h$action] <<- newColor
     drawTimeFigures(svalue(viewr$widgets$CompTable))
 }  # end colorPickerHandler
 
