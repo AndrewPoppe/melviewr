@@ -1,13 +1,12 @@
 
-# These need to be moved to Description/Namespace file instead of here
+# TODO: These need to be moved to Description/Namespace file instead of here
 pkgs <- c('gWidgetsRGtk2', 'gWidgets', 'gtools', 'RColorBrewer', 'RNifti', 'grDevices')
 
 
-# This needs to happen inside main melviewr function, but also needs to reset options on close.
+# TODO: This needs to happen inside main melviewr function, but also need to
+#       reset options on close.
 options("guiToolkit"="RGtk2")
 
-
-source('/opt/HCP/HCPscripts/Functions/melviewR_files/melviewR_color_picker.R')
 
 args <- commandArgs(T)
 nargs <- length(args)
@@ -24,71 +23,164 @@ for(i in seq(along=args)) {
 }
 
 
+#==============================================================================#
+# Functions for saving/loading graphics settings
+
+saveGraphicsSettings <- function(h,...) {
+  tryCatch({
+    configFile <- paste(normalizePath('~'), '/.melviewR.config', sep='')
+    sink(configFile)
+    for(i in 1:length(graphicsDefaults)) {
+      val <- eval(parse(text=names(graphicsDefaults)[i]))
+      sepChar <- ifelse(is.character(val), '"', '')
+      cat(paste(names(graphicsDefaults)[i], ' <<- ', sepChar, val, sepChar, '\n', sep=''))
+    }
+    sink()
+    output <- list(messageTxt = paste('Config file has been saved to:', configFile),
+                   icon = "info")
+    gmessage(output$messageTxt, title='Save Graphics Settings', icon=output$icon)
+  }, warning = function(war) {
+    output <- list(messageTxt = paste('A warning has been raised in the attempt to save settings to:',configFile,'\n',war),
+                   icon = "warning")
+    gmessage(output$messageTxt, title='Save Graphics Settings', icon=output$icon)
+  }, error = function(err) {
+    output <- list(messageTxt = paste('An error has been raied in the attempt to save settings to:',configFile,'\n',err),
+                   icon = "error")
+    gmessage(output$messageTxt, title='Save Graphics Settings', icon=output$icon)
+  }, finally = {
+    DONE <- TRUE
+  })
+}
+
+loadGraphicsSettings <- function() {
+  configFile <- '~/.melviewR.config'
+  configLoaded <- FALSE
+  if(file.exists(configFile)) {
+    source(configFile)
+    configLoaded <- TRUE
+    # if any graphics options are not set in the config file, set them to their default state.
+    for(i in 1:length(graphicsDefaults)) {
+      if(!exists(names(graphicsDefaults[i]))) {
+        assign(names(graphicsDefaults)[i], graphicsDefaults[[i]], inherits=TRUE)
+      }
+    }
+
+  }
+  return(configLoaded)
+}
+
+restoreDefaultGraphicsSettings <- function(...) {
+  for(i in 1:length(graphicsDefaults)) {
+    assign(names(graphicsDefaults)[i], graphicsDefaults[[i]], inherits=TRUE)
+  }
+  if(exists("freqLineWidthChooser")) {
+    suppressRedraw <<- TRUE
+    svalue(ColNumInput) <- numBrainCols
+    svalue(SkipInput) <- skipSlices
+    svalue(ThresholdInput) <- Threshold
+    svalue(BrainColSlider) <- brainColValue
+    svalue(BackgroundSlider) <- brainBackgroundValue
+    svalue(timeCourseLineWidthChooser) <- TimePlotLineWidth
+    svalue(freqLineWidthChooser) <- FreqPlotLineWidth
+    svalue(motionLineAlphaChooser) <- MotionPlotLineAlpha
+    suppressRedraw <<- FALSE
+    updatePlot(NULL)
+  }
+}
+#==============================================================================#
+
+#==============================================================================#
+# Function for creating color picker modal
+colorPicker <- function() {
+
+  w <- gwindow('Color Picker')
+  mainGroup <- ggroup(horizontal = FALSE, container = w, expand=TRUE)
+  topGroup <- ggroup(horizontal = TRUE, container = mainGroup, expand=TRUE)
+  valueFrame <- gframe(container = topGroup)
+  hueFrame <- gframe(container = topGroup, expand=TRUE)
+  valuePlot <- ggraphics(height = 300, width = 300, container = valueFrame)
+  huePlot <- ggraphics(height = 300, width = 10, container = hueFrame)
+  selectionGroup <- ggroup(horizontal = TRUE, container = mainGroup)
+  selectionLabel <- glabel("Selection:", container = selectionGroup)
+  selectionPlot <- ggraphics(height = 10, width = 50, container = selectionGroup)
+  buttonGroup <- ggroup(horizontal = TRUE, container = mainGroup)
+  selectButton <- gbutton("OK", container = buttonGroup)
+  cancelButton <- gbutton("Cancel", container = buttonGroup)
+  rainbowmatrix <- matrix(seq(0, 1, length.out = 1000), nrow = 1)
+  rainbowcolors <- rainbow(1000, start = 0, end = 1)
+  hueColorMatrix <- NULL
+  hueMatrix <- NULL
+  selection <- NULL
+
+  visible(huePlot) <- TRUE
+  par(oma=c(0,0,0,0), mar=c(0,0,0,0))
+  image(rainbowmatrix, col=rainbowcolors, axes=F)
+  hueSelector <- function(h, ...) {
+    x <- h$x; y <- h$y
+    if(x < -1 || x > 1 || y < 0 || y > 1) return()
+    index <- round(y * ncol(rainbowmatrix))
+    chosenHue <- rainbowcolors[index]
+    updateValuePlot(chosenHue)
+  }
+  addHandlerClicked(huePlot, hueSelector)
+  updateValuePlot <- function(hue) {
+    visible(valuePlot) <- TRUE
+    par(oma=c(0,0,0,0), mar=c(0,0,0,0))
+    hueRampPalette <- colorRampPalette(c('white',hue,'black'))
+    hueColorMatrix <<- hueRampPalette(1000)
+    hueMatrix <<- matrix(seq(0,1,length.out = 1000), nrow=1)
+    image(hueMatrix,col=hueColorMatrix, axes=F)
+  }
+
+  updateValuePlot(rainbowcolors[1])
+  valueSelector <- function(h, ...) {
+    x <- h$x; y <- h$y
+    if(x < -1 || x > 1 || y < 0 || y > 1) return()
+    index <- round(y * ncol(hueMatrix))
+    chosenValue <- hueColorMatrix[index]
+    updateSelectionPlot(chosenValue)
+    selection <<- chosenValue
+  }
+  addHandlerClicked(valuePlot, valueSelector)
+
+  updateSelectionPlot <- function(value) {
+    visible(selectionPlot) <- TRUE
+    par(oma=c(0,0,0,0), mar=c(0,0,0,0))
+    image(matrix(1), col=value, axes=FALSE)
+  }
+
+  finalSelection <- NULL
+
+  makeSelection <- function(h,...) {
+    if(!is.null(selection)) {
+      finalSelection <<- selection
+    } else {
+      finalSelection <<- NA
+    }
+    dispose(w)
+  }
+  addHandlerClicked(selectButton, makeSelection)
+
+  cancelSelection <- function(h,...) {
+    finalSelection <<- NA
+    dispose(w)
+  }
+  addHandlerClicked(cancelButton, cancelSelection)
+  addHandlerUnrealize(w, cancelSelection)
+
+  while(is.null(finalSelection)) {
+    Sys.sleep(.5)
+  }
+  return(finalSelection)
+}
+
+# End color picker function definition
+#==============================================================================#
+
+
+
+
 createGUI <- function(ICADIR=NULL) {
-
-	# Functions for saving/loading graphics settings
-	saveGraphicsSettings <- function(h,...) {
-		tryCatch({
-			configFile <- paste(normalizePath('~'), '/.melviewR.config', sep='')
-			sink(configFile)
-				for(i in 1:length(graphicsDefaults)) {
-					val <- eval(parse(text=names(graphicsDefaults)[i]))
-					sepChar <- ifelse(is.character(val), '"', '')
-					cat(paste(names(graphicsDefaults)[i], ' <<- ', sepChar, val, sepChar, '\n', sep=''))
-				}
-			sink()
-			output <- list(messageTxt = paste('Config file has been saved to:', configFile),
-			   			   icon = "info")
-			gmessage(output$messageTxt, title='Save Graphics Settings', icon=output$icon)
-		}, warning = function(war) {
-			output <- list(messageTxt = paste('A warning has been raised in the attempt to save settings to:',configFile,'\n',war),
-						   icon = "warning")
-			gmessage(output$messageTxt, title='Save Graphics Settings', icon=output$icon)
-		}, error = function(err) {
-			output <- list(messageTxt = paste('An error has been raied in the attempt to save settings to:',configFile,'\n',err),
-						   icon = "error")
-			gmessage(output$messageTxt, title='Save Graphics Settings', icon=output$icon)
-		}, finally = {
-			DONE <- TRUE
-		})
-	}
-
-	loadGraphicsSettings <- function() {
-		configFile <- '~/.melviewR.config'
-		configLoaded <- FALSE
-		if(file.exists(configFile)) {
-			source(configFile)
-			configLoaded <- TRUE
-			# if any graphics options are not set in the config file, set them to their default state.
-			for(i in 1:length(graphicsDefaults)) {
-				if(!exists(names(graphicsDefaults[i]))) {
-					assign(names(graphicsDefaults)[i], graphicsDefaults[[i]], inherits=TRUE)
-				}
-			}
-
-		}
-		return(configLoaded)
-	}
-
-	restoreDefaultGraphicsSettings <- function(...) {
-		for(i in 1:length(graphicsDefaults)) {
-			assign(names(graphicsDefaults)[i], graphicsDefaults[[i]], inherits=TRUE)
-		}
-		if(exists("freqLineWidthChooser")) {
-			suppressRedraw <<- TRUE
-			svalue(ColNumInput) <- numBrainCols
-			svalue(SkipInput) <- skipSlices
-			svalue(ThresholdInput) <- Threshold
-			svalue(BrainColSlider) <- brainColValue
-			svalue(BackgroundSlider) <- brainBackgroundValue
-			svalue(timeCourseLineWidthChooser) <- TimePlotLineWidth
-			svalue(freqLineWidthChooser) <- FreqPlotLineWidth
-			svalue(motionLineAlphaChooser) <- MotionPlotLineAlpha
-			suppressRedraw <<- FALSE
-			updatePlot(NULL)
-		}
-	}
-
 
 	# Initalize Variables
 	classificationOptions <- c('Signal', 'Unknown', 'Unclassified Noise', 'Movement', 'Cardiac',
@@ -106,7 +198,8 @@ createGUI <- function(ICADIR=NULL) {
 	braindat <- NULL
 	suppressRedraw <- FALSE
 
-	graphicsDefaults <- list(skipSlices = 3,
+	graphicsDefaults <- list(
+	             skipSlices = 3,
 							 numBrainCols = 9,
 							 Threshold = 2.3,
 							 brainColValue = 0.5,
@@ -120,7 +213,8 @@ createGUI <- function(ICADIR=NULL) {
 							 FreqPlotBackgroundColor = 'white',
 							 FreqPlotLabelColor = 'black',
 							 MotionPlotLineColor = '#FF0000',
-							 MotionPlotLineAlpha = 50)
+							 MotionPlotLineAlpha = 50
+	  )
 
 	# Attempt to load saved graphics settings.
 	# If unable, load defaults.
