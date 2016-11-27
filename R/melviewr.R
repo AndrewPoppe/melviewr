@@ -13,8 +13,8 @@ nargs <- length(args)
 ICADIR <- args[1]
 
 motionFileLoaded <- FALSE
-for(i in seq(along=args)) {
-	if(args[i] == '-mot') {
+for (i in seq(along = args)) {
+	if (args[i] == '-mot') {
 		motionFile <- args[i+1]
 		motionFileLoaded <- TRUE
 		if(!file.exists(motionFile)) stop(paste('The motion file specified does not exist:', motionFile))
@@ -87,7 +87,11 @@ restoreDefaultGraphicsSettings <- function(...) {
     updatePlot(NULL)
   }
 }
+
+# End graphics settings functions
 #==============================================================================#
+
+
 
 #==============================================================================#
 # Function for creating color picker modal
@@ -174,18 +178,94 @@ colorPicker <- function() {
   return(finalSelection)
 }
 
-# End color picker function definition
+# End colorPicker function definition
 #==============================================================================#
 
 
 
+#==============================================================================#
+# Functions for creating individual widgets
+
+# Creates the structural items for the entire gui (groups, frames, etc)
+createStructuralElements <- function(viewr) {
+
+} # end createStructualElements
+
+# creates the main brain plot with axial slices
+createMainPlot <- function(viewr) {
+
+} # end createMainPlot
+
+# creates the gtable widget
+createComponentTable <- function(viewr) {
+
+} # End createComponentTable
+
+# creates the TimeCourse plot
+createTimecoursePlot <- function(viewr) {
+
+} # End createTimecoursePlot
+
+# creates the Powerspectrum plot
+createPowerspectrumPlot <- function(viewr) {
+
+} # End createPowerspectrumPlot
+
+# creates classification options
+createClassificationOptions <- function(viewr) {
+  classificationOptions <- c('Signal', 'Unknown', 'Unclassified Noise',
+                             'Movement', 'Cardiac', 'White matter', 'Non-brain',
+                             'MRI', 'Susceptibility-motion', 'Sagittal sinus',
+                             'Respiratory')
+} # End createClassificationOptions
+
+# creates all graphics options widgets
+createGraphicsOptions <- function(viewr) {
+
+} # End createGraphicsOptions
+
+# creates control buttons (buttons at the bottom of the GUI)
+createControlButtons <- function(viewr) {
+
+} # End createControlButtons
+
+# End individual widget creation functions
+#==============================================================================#
+
+
+
+#==============================================================================#
+# Function to initialize viewr object
+createViewrObject <- function() {
+  viewr <- list(
+    win = NULL,
+    widgets = list(),
+    settings = list(),
+    data = list(
+      ICADIR = NULL,
+      MOTIONFILE = NULL,
+      MELDATA = NULL,
+      STANDARDFILE = NULL,
+      STANDARDDATA = NULL,
+      FSLDIR = NULL,
+      MELDIM = NULL,
+      NCOMPS = NULL,
+      TR = NULL
+    )
+  )
+  return(viewr)
+} # End createViewrObject
+#==============================================================================#
+
+
+
+#==============================================================================#
+# Function for creating main GUI
 
 createGUI <- function(ICADIR=NULL) {
 
 	# Initalize Variables
-	classificationOptions <- c('Signal', 'Unknown', 'Unclassified Noise', 'Movement', 'Cardiac',
-							'White matter', 'Non-brain', 'MRI', 'Susceptibility-motion',
-							'Sagittal sinus', 'Respiratory')
+
 	compList <- data.frame(array(dim=c(0,3)), stringsAsFactors=FALSE)
 	names(compList) <- c('IC', 'ClassName', 'To_Remove')
 	nComps <- 0
@@ -571,8 +651,9 @@ createGUI <- function(ICADIR=NULL) {
 	shouldIExit <- FALSE
 	waitForExit()
 
-}
+} # End createGUI function definition
 
+#==============================================================================#
 
 if(is.na(ICADIR)) {
 	createGUI()
