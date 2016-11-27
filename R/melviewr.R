@@ -3,9 +3,7 @@
 pkgs <- c('gWidgetsRGtk2', 'gWidgets', 'gtools', 'RColorBrewer', 'RNifti', 'grDevices')
 
 
-# TODO: This needs to happen inside main melviewr function, but also need to
-#       reset options on close.
-options("guiToolkit"="RGtk2")
+
 
 
 args <- commandArgs(T)
@@ -198,7 +196,8 @@ createMainPlot <- function(viewr) {
 
 # creates the gtable widget
 createComponentTable <- function(viewr) {
-
+  compList <- data.frame(array(dim=c(0,3)), stringsAsFactors=FALSE)
+  names(compList) <- c('IC', 'ClassName', 'To_Remove')
 } # End createComponentTable
 
 # creates the TimeCourse plot
@@ -241,6 +240,9 @@ createViewrObject <- function() {
     win = NULL,
     widgets = list(),
     settings = list(),
+    status = list(
+      suppressRedraw = FALSE
+    ),
     data = list(
       ICADIR = NULL,
       MOTIONFILE = NULL,
@@ -249,10 +251,34 @@ createViewrObject <- function() {
       STANDARDDATA = NULL,
       FSLDIR = NULL,
       MELDIM = NULL,
-      NCOMPS = NULL,
-      TR = NULL
+      NCOMPS = 0,
+      TR = NULL,
+      COMPTABLE = NULL,
+      TIMEDATFILES = NULL,
+      FREQDATFILES = NULL,
+      STARTSLICE = NULL,
+      ENDSLICE = NULL
     )
   )
+
+  viewr$settings$graphicsDefaults <- list(
+    skipSlices = 3,
+    numBrainCols = 9,
+    Threshold = 2.3,
+    brainColValue = 0.5,
+    brainBackgroundValue = 0,
+    TimePlotLineColor = 'black',
+    TimePlotLineWidth = 0.5,
+    TimePlotBackgroundColor = 'white',
+    TimePlotLabelColor = 'black',
+    FreqPlotLineColor = 'black',
+    FreqPlotLineWidth = 0.5,
+    FreqPlotBackgroundColor = 'white',
+    FreqPlotLabelColor = 'black',
+    MotionPlotLineColor = '#FF0000',
+    MotionPlotLineAlpha = 50
+  )
+
   return(viewr)
 } # End createViewrObject
 #==============================================================================#
@@ -260,41 +286,15 @@ createViewrObject <- function() {
 
 
 #==============================================================================#
-# Function for creating main GUI
+# Function for creating and populating the main GUI
 
-createGUI <- function(ICADIR=NULL) {
+createGUI <- function(viewr) {
 
-	# Initalize Variables
 
-	compList <- data.frame(array(dim=c(0,3)), stringsAsFactors=FALSE)
-	names(compList) <- c('IC', 'ClassName', 'To_Remove')
-	nComps <- 0
-	CompImageFiles <- ""
-	TimeDatFiles <- ""
-	FreqDatFiles <- ""
-	MNIdat <- readNifti('/opt/fsl/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz')
-	startSlice <- 1
-	endSlice <- dim(MNIdat)[3]
-	braindat <- NULL
-	suppressRedraw <- FALSE
 
-	graphicsDefaults <- list(
-	             skipSlices = 3,
-							 numBrainCols = 9,
-							 Threshold = 2.3,
-							 brainColValue = 0.5,
-							 brainBackgroundValue = 0,
-							 TimePlotLineColor = 'black',
-							 TimePlotLineWidth = 0.5,
-							 TimePlotBackgroundColor = 'white',
-							 TimePlotLabelColor = 'black',
-							 FreqPlotLineColor = 'black',
-							 FreqPlotLineWidth = 0.5,
-							 FreqPlotBackgroundColor = 'white',
-							 FreqPlotLabelColor = 'black',
-							 MotionPlotLineColor = '#FF0000',
-							 MotionPlotLineAlpha = 50
-	  )
+  # make viewr object
+  viewr <- createViewrObject()
+
 
 	# Attempt to load saved graphics settings.
 	# If unable, load defaults.
@@ -431,23 +431,6 @@ createGUI <- function(ICADIR=NULL) {
 		title(xlab='Frequency (in Hz)', line=2)
 	}
 
-	colorPickerHandler <- function(h, ...) {
-		# note, this handler will only work with widgets that have an "action" defined
-		newColor <- colorPicker()
-		if(is.na(newColor)) return()
-		assign(h$action, newColor, inherits = TRUE)
-		drawTimeFigures(svalue(CompTable))
-	}
-
-	getTR <- function() {
-		logtxt <- scan(paste(ICADIR,'/log.txt', sep=''), 'character', quiet=TRUE)
-		TRstring <- grep('--tr=', logtxt, value=TRUE)
-		TR <- as.numeric(gsub('--tr=', '', TRstring))
-		return(TR)
-	}
-
-
-
 
 
 	######################
@@ -554,77 +537,13 @@ createGUI <- function(ICADIR=NULL) {
 	GraphicsTable[10,1:2] <- gbutton('Save Graphics Settings', container=GraphicsTable, handler=saveGraphicsSettings)
 	GraphicsTable[11,1:2] <- gbutton('Restore Default Settings', container=GraphicsTable, handler=restoreDefaultGraphicsSettings)
 
-
-
 	# Populate Classification Frame
 	ClassificationRadio <- gradio(classificationOptions, horizontal=FALSE, container=ClassificationFrame, handler=updateClassLabel)
 
 
-	# select an ICA directory
-	getICADIR <- function(...) {
-		ICADIR <<- gfile(type='selectdir', initialfilename='.')
-		loadICADIR(ICADIR)
-	}
-
 	exitGUI <- function(...) {
 		shouldIExit <<- TRUE
 	}
-
-
-	# Given an ica directory, populate values
-	loadICADIR <- function(ICADIR) {
-		# get number of components
-		braindat <<- readNifti(paste(ICADIR, '/melodic_IC.nii.gz', sep=''))
-		nComps <<- dim(braindat)[4]
-
-		# get time and frequency images
-		TimeDatFiles <<- mixedsort(list.files(paste(ICADIR, '/report',sep=''), pattern='^t.*txt', full.names=TRUE))
-		FreqDatFiles <<- mixedsort(list.files(paste(ICADIR, '/report',sep=''), pattern='^f.*txt', full.names=TRUE))
-
-		initializePlot()
-	}
-
-	# Function to save file
-	saveTextFile <- function(...) {
-		dat <- CompTable[]
-		dat2 <- subset(dat, !ClassName %in% c("Signal", "Unknown", ""))
-		formatted <- paste(dat2$IC, collapse=', ')
-		formatted <- paste('[',formatted,']', sep='')
-		outfile <- ''
-		outfile <- gfile(type='save', initialfilename=paste(getwd(),'hand_labels_noise.txt', sep='/'))
-		if(outfile != '') {
-			sink(outfile)
-			writeLines(formatted)
-			sink()
-			write.csv(dat, paste(ICADIR, '/.classification.csv',sep=''), row.names=FALSE, quote=FALSE)
-		}
-	}
-
-	# Function to load classification file
-	loadClassificationFile <- function() {
-		fname <- paste(ICADIR, '/.classification.csv', sep='')
-		output <- NULL
-		if(file.exists(fname)) {
-			output <- read.csv(fname, stringsAsFactors=FALSE)
-		}
-		return(output)
-	}
-
-	# Function to choose and load motion file
-	loadMotionFile <- function(h,...) {
-		initialfilename <- ifelse(file.exists('../../Movement_RelativeRMS.txt'), '../../Movement_RelativeRMS.txt', '.')
-		motionfile <- gfile('Select Motion File', type='open', initialfilename=initialfilename)
-		if(is.na(motionfile)) return()
-		motionFile <<- motionfile
-		motionFileLoaded <<- TRUE
-		motionDat <<- read.table(motionFile)[[1]]
-		enabled(ShowMotionCheckbox) <- TRUE
-		enabled(MotionOptionsToggle) <- TRUE
-		svalue(ShowMotionCheckbox) <- TRUE
-		drawTimeFigures(svalue(CompTable))
-	}
-
-
 
 	# Populate button group
 	ButtonFrame <- gframe('', horizontal=TRUE, container=buttonGroup)
@@ -641,17 +560,121 @@ createGUI <- function(ICADIR=NULL) {
 	}
 
 	waitForExit <- function(...) {
-		while(!shouldIExit) {
+		while (!shouldIExit) {
 			Sys.sleep(1)
 		}
 	}
 
-	addHandlerUnrealize(window, handler = function(h,...) { shouldIExit <<- TRUE })
+	addHandlerUnrealize(window, handler = function(h,...) {
+	  shouldIExit <<- TRUE
+	})
 
 	shouldIExit <- FALSE
 	waitForExit()
 
 } # End createGUI function definition
+#==============================================================================#
+
+
+
+#==============================================================================#
+# Various widget handlers and misc functions
+
+# Function to choose and load motion file
+loadMotionFile <- function(h,...) {
+  initialfilename <- ifelse(file.exists('../../Movement_RelativeRMS.txt'), '../../Movement_RelativeRMS.txt', '.')
+  motionfile <- gfile('Select Motion File', type='open', initialfilename=initialfilename)
+  if(is.na(motionfile)) return()
+  motionFile <<- motionfile
+  motionFileLoaded <<- TRUE
+  motionDat <<- read.table(motionFile)[[1]]
+  enabled(ShowMotionCheckbox) <- TRUE
+  enabled(MotionOptionsToggle) <- TRUE
+  svalue(ShowMotionCheckbox) <- TRUE
+  drawTimeFigures(svalue(CompTable))
+} # End loadMotionFile
+
+# Function to load classification file
+loadClassificationFile <- function() {
+  fname <- paste(ICADIR, '/.classification.csv', sep='')
+  output <- NULL
+  if(file.exists(fname)) {
+    output <- read.csv(fname, stringsAsFactors=FALSE)
+  }
+  return(output)
+} # End loadClassificationFile
+
+# Function to save file
+saveClassificationFile <- function(...) {
+  dat <- CompTable[]
+  dat2 <- subset(dat, !ClassName %in% c("Signal", "Unknown", ""))
+  formatted <- paste(dat2$IC, collapse=', ')
+  formatted <- paste('[',formatted,']', sep='')
+  outfile <- ''
+  outfile <- gfile(type='save', initialfilename=paste(getwd(),'hand_labels_noise.txt', sep='/'))
+  if(outfile != '') {
+    sink(outfile)
+    writeLines(formatted)
+    sink()
+    write.csv(dat, paste(ICADIR, '/.classification.csv',sep=''), row.names=FALSE, quote=FALSE)
+  }
+} # End saveClassificationFile
+
+# Function to load information from ICA directory
+# Given an ica directory, populate values
+loadICADIR <- function(ICADIR) {
+  # get number of components
+  braindat <<- readNifti(paste(ICADIR, '/melodic_IC.nii.gz', sep=''))
+  nComps <<- dim(braindat)[4]
+
+  # get time and frequency images
+  TimeDatFiles <<- mixedsort(list.files(paste(ICADIR, '/report',sep=''), pattern='^t.*txt', full.names=TRUE))
+  FreqDatFiles <<- mixedsort(list.files(paste(ICADIR, '/report',sep=''), pattern='^f.*txt', full.names=TRUE))
+
+  initializePlot()
+} # End loadICADIR
+
+# select an ICA directory
+getICADIR <- function(...) {
+  ICADIR <<- gfile(type='selectdir', initialfilename='.')
+  loadICADIR(ICADIR)
+} # END getICADIR
+
+# handler for "select color" buttons
+colorPickerHandler <- function(h, ...) {
+  # note, this handler will only work with widgets that have an "action" defined
+  newColor <- colorPicker()
+  if(is.na(newColor)) return()
+  assign(h$action, newColor, inherits = TRUE)
+  drawTimeFigures(svalue(CompTable))
+} # end colorPickerHandler
+
+# Gets the TR for a given ica directory for use with timecourse and frequency
+# plots
+getTR <- function() {
+  logtxt <- scan(paste(ICADIR,'/log.txt', sep=''), 'character', quiet=TRUE)
+  TRstring <- grep('--tr=', logtxt, value=TRUE)
+  TR <- as.numeric(gsub('--tr=', '', TRstring))
+  return(TR)
+} # End getTR
+
+# End widget handlers definitions
+#==============================================================================#
+
+
+
+#==============================================================================#
+# Main function the user will see.
+
+melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
+
+  # Keep environment tidy
+  old <- options(stringsAsFactors = FALSE)
+  on.exit(options(old), add = TRUE)
+  options("guiToolkit" = "RGtk2")
+
+
+} # End melviewr function definition
 
 #==============================================================================#
 
