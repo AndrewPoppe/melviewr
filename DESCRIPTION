@@ -9,8 +9,10 @@ Description: More about what it does (maybe more than one line)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: gWidgetsRGtk2,
+Imports:
+    gWidgetsRGtk2,
     gtools,
     RColorBrewer,
     RNifti,
     grDevices
+RoxygenNote: 5.0.1

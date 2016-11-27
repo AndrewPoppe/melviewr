@@ -68,7 +68,7 @@ restoreDefaultGraphicsSettings <- function(...) {
 # TODO: Find where to put these lines:
 # Attempt to load saved graphics settings.  If unable, load defaults.
 if (!loadGraphicsSettings()) {
-    restoreDefaultGraphicsSettings()
+    #restoreDefaultGraphicsSettings()
 }
 
 # End graphics settings functions
@@ -267,7 +267,7 @@ createViewrObject <- function() {
 
     return(viewr)
 }  # End createViewrObject
-# ==============================================================================#
+#==============================================================================#
 
 
 
@@ -541,7 +541,8 @@ loadStandard <- function(h, ...) {
     }
 }  # End loadStandard
 
-# End widget handlers definitions ==============================================================================#
+# End widget handlers definitions
+#==============================================================================#
 
 
 
@@ -646,14 +647,23 @@ drawFrequency <- function(fdat, TR, nTRs) {
     title(xlab = "Frequency (in Hz)", line = 2)
 }  # End drawFrequency
 
-# ==============================================================================#
+#==============================================================================#
 
 
 
 #==============================================================================#
 # Main function the user will see.
+#' melviewr
+#'
+#' View and Classify Components from a Melodic Analysis
+#' @param melodic_dir string Path to MELODIC output directory
+#' @param standard_file string Optional path to a 3-dimensional Nifti standard file
+#' of the same voxel dimensions as the melodic output
+#' @param motion_file string Optional path to a summary motion text file. This file
+#' should have one column and as many rows as there are volumes in the functional
+#' data
 #' @export
-
+#' @import gWidgets
 melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
 
     # Keep environment tidy
@@ -696,8 +706,23 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
 
     return(viewr)
 }  # End melviewr function definition
-# ==============================================================================#
+#==============================================================================#
 
 
 
-
+#==============================================================================#
+# Documentation for the package
+#' melviewr: A viewer for MELODIC output and ICA+FIX classification.
+#'
+#' The melviewr package allows the user to easily view and classify
+#' MELODIC output for the purposes of later running ICA+FIX. The user
+#' categorizes a component as signal or noise based on its spatial
+#' characteristics as well as its temporal profile. melviewr can then save
+#' a text file of these classifications in the format required by ICA+FIX.
+#'
+#' @section melviewr functions:
+#' melviewr
+#'
+#' @docType package
+#' @name melviewr-package
+NULL
