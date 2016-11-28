@@ -684,15 +684,17 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     # TODO: write specific function to test motion_file
 
     # TODO: find where this code should go
-    if (!is.null(ICADIR)) {
-      setwd(ICADIR)
-      loadICADIR(ICADIR)
-    } else {
-      initializePlot()
-    }
+    #if (!is.null(ICADIR)) {
+      #setwd(ICADIR)
+      #loadICADIR(ICADIR)
+    #} else {
+      #initializePlot()
+    #}
+
+    viewr <- createGUI(viewr)
 
     waitForExit <- function(...) {
-      while (!shouldIExit) {
+      while (!viewr$status$exit) {
         Sys.sleep(1)
       }
     }
