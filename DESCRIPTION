@@ -15,4 +15,6 @@ Imports:
     RColorBrewer,
     RNifti,
     grDevices
+Depends:
+    gWidgets
 RoxygenNote: 5.0.1

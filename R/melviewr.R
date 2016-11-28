@@ -273,7 +273,6 @@ createViewrObject <- function() {
 
 #==============================================================================#
 # Function for creating and populating the main GUI
-
 createGUI <- function(viewr) {
 
     # main window
