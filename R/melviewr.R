@@ -5,7 +5,7 @@
 
 saveGraphicsSettings <- function(h, ...) {
     tryCatch({
-        configFile <- paste(normalizePath("~"), "/.melviewR.config", sep = "")
+        configFile <- paste(Sys.getenv('HOME'), "/.melviewR.config", sep = "")
         sink(configFile)
         for (i in 1:length(graphicsDefaults)) {
             val <- eval(parse(text = names(graphicsDefaults)[i]))
@@ -671,7 +671,7 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     options(guiToolkit = "RGtk2")
 
     # make viewr object
-    viewr <- createViewrObject()
+    viewr <<- createViewrObject()
 
     # test validity of inputs
     if (dir.exists(melodic_dir)) {
@@ -691,7 +691,7 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
       #initializePlot()
     #}
 
-    viewr <- createGUI(viewr)
+    viewr <<- createGUI(viewr)
 
     waitForExit <- function(...) {
       while (!viewr$status$exit) {
@@ -700,10 +700,10 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     }
 
     addHandlerUnrealize(viewr$win , handler = function(h, ...) {
-      viewr$status$exit <- TRUE
+      viewr$status$exit <<- TRUE
     })
 
-    waitForExit()
+    #waitForExit()
 
     return(viewr)
 }  # End melviewr function definition
