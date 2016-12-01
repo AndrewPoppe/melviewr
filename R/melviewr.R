@@ -703,7 +703,7 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
       viewr$status$exit <<- TRUE
     })
 
-    if (interactive()) {
+    if (!interactive()) {
       waitForExit()
     }
 
