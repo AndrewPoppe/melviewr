@@ -3,7 +3,7 @@
 #==============================================================================#
 # Functions for saving/loading graphics settings
 
-saveGraphicsSettings <- function(h, ...) {
+.saveGraphicsSettings <- function(h, ...) {
     tryCatch({
         configFile <- paste(Sys.getenv('HOME'), "/.melviewR.config", sep = "")
         sink(configFile)
@@ -28,8 +28,8 @@ saveGraphicsSettings <- function(h, ...) {
     })
 }
 
-loadGraphicsSettings <- function() {
-    configFile <- "~/.melviewR.config"
+.loadGraphicsSettings <- function() {
+    configFile <- paste0(Sys.getenv('HOME'), "/.melviewR.config")
     configLoaded <- FALSE
     if (file.exists(configFile)) {
         source(configFile)
@@ -45,21 +45,19 @@ loadGraphicsSettings <- function() {
     return(configLoaded)
 }
 
-restoreDefaultGraphicsSettings <- function(...) {
-    for (i in 1:length(graphicsDefaults)) {
-        assign(names(graphicsDefaults)[i], graphicsDefaults[[i]], inherits = TRUE)
-    }
-    if (exists("freqLineWidthChooser")) {
-        suppressRedraw <<- TRUE
-        svalue(ColNumInput) <- numBrainCols
-        svalue(SkipInput) <- skipSlices
-        svalue(ThresholdInput) <- Threshold
-        svalue(BrainColSlider) <- brainColValue
-        svalue(BackgroundSlider) <- brainBackgroundValue
-        svalue(timeCourseLineWidthChooser) <- TimePlotLineWidth
-        svalue(freqLineWidthChooser) <- FreqPlotLineWidth
-        svalue(motionLineAlphaChooser) <- MotionPlotLineAlpha
-        suppressRedraw <<- FALSE
+.restoreDefaultGraphicsSettings <- function(...) {
+    settings$graphics <<- settings$graphicsDefaults
+    if (!is.null(widgets$freqLineWidthChooser)) {
+        status$suppressRedraw <<- TRUE
+        svalue(widgets$ColNumInput) <<- settings$graphics$numBrainCols
+        svalue(widgets$SkipInput) <<- settings$graphics$skipSlices
+        svalue(widgets$ThresholdInput) <<- settings$graphics$Threshold
+        svalue(widgets$BrainColSlider) <<- settings$graphics$brainColValue
+        svalue(widgets$BackgroundSlider) <<- settings$graphics$brainBackgroundValue
+        svalue(widgets$timeCourseLineWidthChooser) <<- settings$graphics$TimePlotLineWidth
+        svalue(widgets$freqLineWidthChooser) <<- settings$graphics$FreqPlotLineWidth
+        svalue(widgets$motionLineAlphaChooser) <<- settings$graphics$MotionPlotLineAlpha
+        status$suppressRedraw <<- FALSE
         updatePlots(NULL)
     }
 }
@@ -67,9 +65,9 @@ restoreDefaultGraphicsSettings <- function(...) {
 
 # TODO: Find where to put these lines:
 # Attempt to load saved graphics settings.  If unable, load defaults.
-if (!loadGraphicsSettings()) {
-    #restoreDefaultGraphicsSettings()
-}
+#if (!loadGraphicsSettings()) {
+#  restoreDefaultGraphicsSettings()
+#}
 
 # End graphics settings functions
 #==============================================================================#
@@ -169,64 +167,17 @@ colorPicker <- function() {
 
 
 #==============================================================================#
-# Functions for creating individual widgets
-
-# Creates the structural items for the entire gui (groups, frames, etc)
-createStructuralElements <- function(viewr) {
-
-}  # end createStructualElements
-
-# creates the main brain plot with axial slices
-createMainPlot <- function(viewr) {
-
-}  # end createMainPlot
-
-# creates the gtable widget
-createComponentTable <- function(viewr) {
-
-}  # End createComponentTable
-
-# creates the TimeCourse plot
-createTimecoursePlot <- function(viewr) {
-
-}  # End createTimecoursePlot
-
-# creates the Powerspectrum plot
-createPowerspectrumPlot <- function(viewr) {
-
-}  # End createPowerspectrumPlot
-
-# creates classification options
-createClassificationOptions <- function(viewr) {
-
-}  # End createClassificationOptions
-
-# creates all graphics options widgets
-createGraphicsOptions <- function(viewr) {
-
-}  # End createGraphicsOptions
-
-# creates control buttons (buttons at the bottom of the GUI)
-createControlButtons <- function(viewr) {
-
-}  # End createControlButtons
-
-# End individual widget creation functions
-#==============================================================================#
-
-
-
-
-
-#==============================================================================#
 # Function for creating and populating the main GUI
-createGUI <- function() {
+.createGUI <- function() {
 
     # main window
     win <<- gwindow("Melodic Results Viewer")
     size(win) <<- c(1600, 1000)
     Sys.sleep(0.1)
     size(win) <<- c(500, 500)
+
+    # status bar
+    widgets$statusBar <<- gstatusbar("", container = win)
 
     # big group
     widgets$bigGroup <<- glayout(horizontal = FALSE, container = win, expand = TRUE)
@@ -248,7 +199,7 @@ createGUI <- function() {
     widgets$topGroup[1, 1:5, expand = TRUE] <<- widgets$MainPlotGroup
     widgets$MainPlotLabel <<- glabel("", container = widgets$MainPlotGroup)
     widgets$MainPlotFrame <<- gframe("", container = widgets$MainPlotGroup, expand = TRUE)
-    widgets$MainPlot <<- ggraphics(width = 300, height = 300, container = widgets$MainPlotFrame, handler = updatePlots,
+    widgets$MainPlot <<- ggraphics(width = 300, height = 300, container = widgets$MainPlotFrame, handler = .self$updatePlots,
         expand = TRUE)
     widgets$CompTable <<- gtable(data$COMPTABLE, container = widgets$topGroup, expand = TRUE)
     widgets$topGroup[1, 6, expand = TRUE] <<- widgets$CompTable
@@ -267,27 +218,27 @@ createGUI <- function() {
     widgets$GraphicsTable <<- glayout(container = widgets$GraphicsFrame)
     widgets$GraphicsTable[1, 1] <<- glabel("# Columns:", container = widgets$GraphicsTable)
     widgets$ColNumInput <<- gcombobox(1:100, selected = settings$graphicsDefaults$numBrainCols, container = widgets$GraphicsTable,
-        handler = updatePlots)
+        handler = .self$updatePlots)
     widgets$GraphicsTable[1, 2] <<- widgets$ColNumInput
     widgets$GraphicsTable[2, 1] <<- glabel("Skip Slices:", container = widgets$GraphicsTable)
     widgets$SkipInput <<- gcombobox(1:100, selected = settings$graphicsDefaults$skipSlices, container = widgets$GraphicsTable,
-        handler = updatePlots)
+        handler = .self$updatePlots)
     widgets$GraphicsTable[2, 2] <<- widgets$SkipInput
     widgets$GraphicsTable[3, 1] <<- glabel("Threshold: +/-", container = widgets$GraphicsTable)
-    widgets$ThresholdInput <<- gedit("2.3", container = widgets$GraphicsTable, handler = updatePlots)
+    widgets$ThresholdInput <<- gedit("2.3", container = widgets$GraphicsTable, handler = .self$updatePlots)
     widgets$GraphicsTable[3, 2] <<- widgets$ThresholdInput
     widgets$GraphicsTable[4, 1] <<- glabel("Brain darkness:", container = widgets$GraphicsTable)
     widgets$BrainColSlider <<- gspinbutton(from = 0, to = 1, by = 0.2, value = settings$graphicsDefaults$brainColValue,
-        container = widgets$GraphicsTable, handler = updatePlots)
+        container = widgets$GraphicsTable, handler = .self$updatePlots)
     widgets$GraphicsTable[4, 2] <<- widgets$BrainColSlider
     widgets$GraphicsTable[5, 1] <<- glabel("Background darkness:", container = widgets$GraphicsTable)
     widgets$BackgroundSlider <<- gspinbutton(from = 0, to = 100, by = 20, value = settings$graphicsDefaults$brainBackgroundValue,
-        container = widgets$GraphicsTable, handler = updatePlots)
+        container = widgets$GraphicsTable, handler = .self$updatePlots)
     widgets$GraphicsTable[5, 2] <<- widgets$BackgroundSlider
     widgets$ShowMotionCheckbox <<- gcheckbox("Show Motion Plot", checked = !is.null(data$MOTIONFILE),
         container = widgets$GraphicsTable, handler = function(h, ...) {
-                                      drawTimeFigures(svalue(widgets$CompTable))
-                                    })
+          .self$drawTimeFigures(svalue(widgets$CompTable))
+        })
     if (is.null(data$MOTIONFILE)) {
       enabled(widgets$ShowMotionCheckbox) <<- FALSE
     }
@@ -295,60 +246,61 @@ createGUI <- function() {
 
     widgets$TimeOptionsToggle <<- gexpandgroup("Timecourse Plot Options", horizontal = FALSE, container = widgets$GraphicsTable)
     widgets$GraphicsTable[7, 1:2] <<- widgets$TimeOptionsToggle
-    widgets$timeCourseLineColorButton <<- gbutton("Set Line Color", container = widgets$TimeOptionsToggle, action = "TimePlotLineColor", handler = colorPickerHandler)
+    widgets$timeCourseLineColorButton <<- gbutton("Set Line Color", container = widgets$TimeOptionsToggle, action = "TimePlotLineColor", handler = .self$colorPickerHandler)
     widgets$timeCourseBgColorButton <<- gbutton("Set Background Color", container = widgets$TimeOptionsToggle, action = "TimePlotBackgroundColor",
-        handler = colorPickerHandler)
-    widgets$timeCourseLabelsColorButton <<- gbutton("Set Labels Color", container = widgets$TimeOptionsToggle, action = "TimePlotLabelColor", handler = colorPickerHandler)
+        handler = .self$colorPickerHandler)
+    widgets$timeCourseLabelsColorButton <<- gbutton("Set Labels Color", container = widgets$TimeOptionsToggle, action = "TimePlotLabelColor", handler = .self$colorPickerHandler)
     widgets$timeCourseLineWidthGroup <<- ggroup(horizontal = TRUE, container = widgets$TimeOptionsToggle)
     widgets$timeCourseLineWidthLabel <<- glabel("Set Line Width:", container = widgets$timeCourseLineWidthGroup)
     widgets$timeCourseLineWidthChooser <<- gspinbutton(from = 0.1, to = 3, by = 0.1, value = settings$graphics$TimePlotLineWidth, container = widgets$timeCourseLineWidthGroup,
         handler = function(h, ...) {
             settings$graphics$TimePlotLineWidth <<- svalue(widgets$timeCourseLineWidthChooser)
-            drawTimeFigures(svalue(widgets$CompTable))
+            .self$drawTimeFigures(svalue(widgets$CompTable))
         })
 
     widgets$FreqOptionsToggle <<- gexpandgroup("Powerspectrum Plot Options", horizontal = FALSE, container = widgets$GraphicsTable)
     widgets$GraphicsTable[8, 1:2] <<- widgets$FreqOptionsToggle
-    widgets$freqLineColorButton <<- gbutton("Set Line Color", container = widgets$FreqOptionsToggle, action = "FreqPlotLineColor", handler = colorPickerHandler)
-    widgets$freqBgColorButton <<- gbutton("Set Background Color", container = widgets$FreqOptionsToggle, action = "FreqPlotBackgroundColor", handler = colorPickerHandler)
-    widgets$freqLabelsColorButton <<- gbutton("Set Labels Color", container = widgets$FreqOptionsToggle, action = "FreqPlotLabelColor", handler = colorPickerHandler)
+    widgets$freqLineColorButton <<- gbutton("Set Line Color", container = widgets$FreqOptionsToggle, action = "FreqPlotLineColor", handler = .self$colorPickerHandler)
+    widgets$freqBgColorButton <<- gbutton("Set Background Color", container = widgets$FreqOptionsToggle, action = "FreqPlotBackgroundColor", handler = .self$colorPickerHandler)
+    widgets$freqLabelsColorButton <<- gbutton("Set Labels Color", container = widgets$FreqOptionsToggle, action = "FreqPlotLabelColor", handler = .self$colorPickerHandler)
     widgets$freqLineWidthGroup <<- ggroup(horizontal = TRUE, container = widgets$FreqOptionsToggle)
     widgets$freqLineWidthLabel <<- glabel("Set Line Width:", container = widgets$freqLineWidthGroup)
     widgets$freqLineWidthChooser <<- gspinbutton(from = 0.1, to = 3, by = 0.1, value = settings$graphics$FreqPlotLineWidth, container = widgets$freqLineWidthGroup,
         handler = function(h, ...) {
             settings$graphics$FreqPlotLineWidth <<- svalue(widgets$freqLineWidthChooser)
-            drawTimeFigures(svalue(widgets$CompTable))
+            .self$drawTimeFigures(svalue(widgets$CompTable))
         })
 
     widgets$MotionOptionsToggle <<- gexpandgroup("Motion Plot Options", horizontal = FALSE, container = widgets$GraphicsTable)
     widgets$GraphicsTable[9, 1:2] <<- widgets$MotionOptionsToggle
-    widgets$motionLineColorButton <<- gbutton("Set Line Color", container = widgets$MotionOptionsToggle, action = "MotionPlotLineColor", handler = colorPickerHandler)
+    widgets$motionLineColorButton <<- gbutton("Set Line Color", container = widgets$MotionOptionsToggle, action = "MotionPlotLineColor", handler = .self$colorPickerHandler)
     widgets$motionLineAlphaGroup <<- ggroup(horizontal = T, container = widgets$MotionOptionsToggle)
     widgets$motionLineAlphaLabel <<- glabel("Line Opacity:", container = widgets$motionLineAlphaGroup)
     widgets$motionLineAlphaChooser <<- gspinbutton(from = 0, to = 99, by = 10, value = settings$graphics$MotionPlotLineAlpha, container = widgets$motionLineAlphaGroup,
         handler = function(h, ...) {
             settings$graphics$MotionPlotLineAlpha <<- svalue(widgets$motionLineAlphaChooser)
-            drawTimeFigures(svalue(widgets$CompTable))
+            .self$drawTimeFigures(svalue(widgets$CompTable))
         })
     if (is.null(data$MOTIONFILE))
         enabled(widgets$MotionOptionsToggle) <<- FALSE
 
-    widgets$GraphicsTable[10, 1:2] <<- gbutton("Save Graphics Settings", container = widgets$GraphicsTable, handler = saveGraphicsSettings)
-    widgets$GraphicsTable[11, 1:2] <<- gbutton("Restore Default Settings", container = widgets$GraphicsTable, handler = restoreDefaultGraphicsSettings)
+    widgets$GraphicsTable[10, 1:2] <<- gbutton("Save Graphics Settings", container = widgets$GraphicsTable, handler = .self$saveGraphicsSettings)
+    widgets$GraphicsTable[11, 1:2] <<- gbutton("Restore Default Settings", container = widgets$GraphicsTable, handler = .self$restoreDefaultGraphicsSettings)
 
     # Populate Classification Frame
     classificationOptions <- c("Signal", "Unknown", "Unclassified Noise", "Movement", "Cardiac", "White matter", "Non-brain", "MRI",
                                "Susceptibility-motion", "Sagittal sinus", "Respiratory")
-    widgets$ClassificationRadio <<- gradio(classificationOptions, horizontal = FALSE, container = widgets$ClassificationFrame, handler = updateClassLabel)
+    widgets$ClassificationRadio <<- gradio(classificationOptions, horizontal = FALSE, container = widgets$ClassificationFrame, handler = .self$updateClassLabel)
 
 
     # Populate button group
     widgets$ButtonFrame <<- gframe("", horizontal = TRUE, container = widgets$buttonGroup)
-    widgets$LoadButton <<- gbutton("Load ICA directory", container = widgets$ButtonFrame, handler = getICADIR)
-    widgets$LoadMotionButton <<- gbutton("Load Motion File", container = widgets$ButtonFrame, handler = loadMotionFile)
-    widgets$SaveButton <<- gbutton("Save Classification File", container = widgets$ButtonFrame, handler = saveClassificationFile)
+    widgets$LoadButton <<- gbutton("Load ICA directory", container = widgets$ButtonFrame, handler = .self$getICADIR)
+    widgets$LoadMotionButton <<- gbutton("Load Motion File", container = widgets$ButtonFrame, handler = .self$loadMotionFile)
+    widgets$SaveButton <<- gbutton("Save Classification File", container = widgets$ButtonFrame, handler = .self$saveClassificationFile)
     widgets$ExitButton <<- gbutton("Exit", container = widgets$ButtonFrame, handler = function(h, ...){
       status$exit <<- TRUE
+      dispose(win)
     })
 
 }  # End createGUI function definition
@@ -360,52 +312,51 @@ createGUI <- function() {
 # Various widget handlers and misc functions
 
 # Updates all three plots
-updatePlots <- function(h, ...) {
-    if (suppressRedraw)
+.updatePlots <- function(h, ...) {
+    if (status$suppressRedraw)
         return()
-    compNum <- svalue(CompTable)
-    svalue(MainPlotLabel) <- compNum
-    if (length(CompTable[compNum]$ClassName) > 0) {
-        if (CompTable[compNum]$ClassName == "") {
-            CompTable[compNum, 2] <- "Signal"
+    compNum <- svalue(widgets$CompTable)
+    svalue(widgets$MainPlotLabel) <<- compNum
+    if (length(widgets$CompTable[compNum]$ClassName) > 0) {
+        if (widgets$CompTable[compNum]$ClassName == "") {
+            widgets$CompTable[compNum, 2] <<- "Signal"
         }
     }
-    svalue(ClassificationRadio) <- CompTable[compNum]$ClassName
-    Threshold <<- as.numeric(svalue(ThresholdInput))
-    skipSlices <<- svalue(SkipInput)
-    numBrainCols <<- svalue(ColNumInput)
-    brainColValue <<- svalue(BrainColSlider)
-    brainBackgroundValue <<- svalue(BackgroundSlider)
+    svalue(widgets$ClassificationRadio) <<- widgets$CompTable[compNum]$ClassName
+    settings$graphics$Threshold <<- as.numeric(svalue(widgets$ThresholdInput))
+    settings$graphics$skipSlices <<- svalue(widgets$SkipInput)
+    settings$graphics$numBrainCols <<- svalue(widgets$ColNumInput)
+    settings$graphics$brainColValue <<- svalue(widgets$BrainColSlider)
+    settings$graphics$brainBackgroundValue <<- svalue(widgets$BackgroundSlider)
     drawTimeFigures(compNum)
     drawBrains(compNum)
 }  # End updatePlots
 
 # Handler to update `class` and `To_Remove` columns of table
-updateClassLabel <- function(h, ...) {
-    compNum <- as.numeric(svalue(MainPlotLabel))
-    thisClassName <- svalue(ClassificationRadio)
-    CompTable[compNum]$ClassName <- thisClassName
-    CompTable[compNum]$To_Remove <- ifelse(!thisClassName %in% c("Signal", "Unknown"), "X", "")
+.updateClassLabel <- function(h, ...) {
+    compNum <- as.numeric(svalue(widgets$MainPlotLabel))
+    thisClassName <- svalue(widgets$ClassificationRadio)
+    widgets$CompTable[compNum]$ClassName <<- thisClassName
+    widgets$CompTable[compNum]$To_Remove <<- ifelse(!thisClassName %in% c("Signal", "Unknown"), "X", "")
 }  # End updateClassLabel
 
 # Function to choose and load motion file
-loadMotionFile <- function(h, ...) {
+.loadMotionFile <- function(h, ...) {
     initialfilename <- ifelse(file.exists("../../Movement_RelativeRMS.txt"), "../../Movement_RelativeRMS.txt", ".")
     motionfile <- gfile("Select Motion File", type = "open", initialfilename = initialfilename)
     if (is.na(motionfile))
         return()
-    motionFile <<- motionfile
-    motionFileLoaded <<- TRUE
-    motionDat <<- read.table(motionFile)[[1]]
-    enabled(ShowMotionCheckbox) <- TRUE
-    enabled(MotionOptionsToggle) <- TRUE
-    svalue(ShowMotionCheckbox) <- TRUE
-    drawTimeFigures(svalue(CompTable))
+    data$MOTIONFILE <<- motionfile
+    data$MOTIONDATA <<- read.table(motionfile)[[1]]
+    enabled(widgets$ShowMotionCheckbox) <<- TRUE
+    enabled(widgets$MotionOptionsToggle) <<- TRUE
+    svalue(widgets$ShowMotionCheckbox) <<- TRUE
+    drawTimeFigures(svalue(widgets$CompTable))
 }  # End loadMotionFile
 
 # Function to load classification file
-loadClassificationFile <- function() {
-    fname <- paste(ICADIR, "/.classification.csv", sep = "")
+.loadClassificationFile <- function() {
+    fname <- paste(data$ICADIR, "/.classification.csv", sep = "")
     output <- NULL
     if (file.exists(fname)) {
         output <- read.csv(fname, stringsAsFactors = FALSE)
@@ -414,7 +365,7 @@ loadClassificationFile <- function() {
 }  # End loadClassificationFile
 
 # Function to save file
-saveClassificationFile <- function(...) {
+.saveClassificationFile <- function(...) {
     dat <- CompTable[]
     dat2 <- subset(dat, !ClassName %in% c("Signal", "Unknown", ""))
     formatted <- paste(dat2$IC, collapse = ", ")
@@ -430,44 +381,68 @@ saveClassificationFile <- function(...) {
 }  # End saveClassificationFile
 
 # Function to load information from ICA directory Given an ica directory, populate values
-loadICADIR <- function(ICADIR) {
-    # get number of components
-    braindat <<- readNifti(paste(ICADIR, "/melodic_IC.nii.gz", sep = ""))
-    nComps <<- dim(braindat)[4]
+.loadICADIR <- function() {
+  ICADIR <- data$ICADIR
 
+  # get number of components
+  datfile <- list.files(ICADIR, pattern = '^melodic_IC.nii.*', full.names = TRUE)
+  svalue(widgets$statusBar) <<- paste("Now loading", datfile); Sys.sleep(.1)
+  data$MELDATA <<- RNifti::readNifti(datfile)
+  svalue(widgets$statusBar) <<- paste(datfile, "loaded."); Sys.sleep(.1)
+  data$NCOMPS <<- dim(data$MELDATA)[4]
+  data$MELDIM <<- dim(data$MELDATA)[1:3]
+
+  # report directory must be present to find time and frequency files
+  reportDir <- paste0(ICADIR, '/report')
+  if (!dir.exists(reportDir)) {
+    gmessage("There is no 'report' directory in the ICA directory specified, so \
+melviewr will be unable to load timecourse and powerspectrum data files.",
+             title = "Warning", icon = "warning", parent = win)
+  } else {
     # get time and frequency images
-    TimeDatFiles <<- mixedsort(list.files(paste(ICADIR, "/report", sep = ""), pattern = "^t.*txt", full.names = TRUE))
-    FreqDatFiles <<- mixedsort(list.files(paste(ICADIR, "/report", sep = ""), pattern = "^f.*txt", full.names = TRUE))
+    data$TIMEDATFILES <<- gtools::mixedsort(list.files(reportDir,
+                                            pattern = "^t.*txt",
+                                            full.names = TRUE))
+    data$FREQDATFILES <<- gtools::mixedsort(list.files(reportDir,
+                                            pattern = "^f.*txt",
+                                            full.names = TRUE))
+  }
 
-    initializePlot()
+  data$TR <<- getTR()
+
+  initializePlot()
 }  # End loadICADIR
 
 # select an ICA directory
-getICADIR <- function(...) {
-    ICADIR <<- gfile(type = "selectdir", initialfilename = ".")
+.getICADIR <- function(...) {
+    data$ICADIR <<- gfile(type = "selectdir", initialfilename = ".")
     loadICADIR(ICADIR)
 }  # END getICADIR
 
 # handler for 'select color' buttons
-colorPickerHandler <- function(h, ...) {
+.colorPickerHandler <- function(h, ...) {
     # note, this handler will only work with widgets that have an 'action' defined
     newColor <- colorPicker()
     if (is.na(newColor))
         return()
-    viewr$settings$graphics[h$action] <<- newColor
-    drawTimeFigures(svalue(viewr$widgets$CompTable))
+    settings$graphics[h$action] <<- newColor
+    drawTimeFigures(svalue(widgets$CompTable))
 }  # end colorPickerHandler
 
 # Gets the TR for a given ica directory for use with timecourse and frequency plots
-getTR <- function() {
-    logtxt <- scan(paste(ICADIR, "/log.txt", sep = ""), "character", quiet = TRUE)
+.getTR <- function() {
+    logtxt <- scan(paste(data$ICADIR, "/log.txt", sep = ""), "character", quiet = TRUE)
     TRstring <- grep("--tr=", logtxt, value = TRUE)
     TR <- as.numeric(gsub("--tr=", "", TRstring))
-    return(TR)
+    if(length(TR) < 1) {
+      return(NULL)
+    } else {
+      return(TR)
+    }
 }  # End getTR
 
 # Load standard file data
-loadStandard <- function(h, ...) {
+.loadStandard <- function(h, ...) {
 
     # find first and last slices that aren't all 0s
     for (i in 1:dim(viewr$data$STANDARDDATA)[3]) {
@@ -493,103 +468,152 @@ loadStandard <- function(h, ...) {
 # Functions for drawing plots
 
 # TODO: Separate these into main plot and table functions
-initializePlot <- function() {
-    compList <<- data.frame(array(dim = c(nComps, 3)), stringsAsFactors = FALSE)
-    names(compList) <<- c("IC", "ClassName", "To_Remove")
-    if (nrow(compList) > 0) {
-        compList$IC <- 1:nComps
-        compList$ClassName <- ""
-        compList$To_Remove <- ""
-    }
-    CompTable[] <<- compList
-    if (nrow(compList) > 0) {
-        drawTimeFigures(1)
-        svalue(CompTable) <- 1
-        drawBrains(1)
-        svalue(MainPlotLabel) <- 1
-        prevClass <- loadClassificationFile()
-        if (!is.null(prevClass)) {
-            if (nrow(prevClass) == nrow(CompTable[]))
-                CompTable[] <<- prevClass
-        }
-    }
-    addHandlerClicked(CompTable, handler = updatePlots)
+.initializePlot <- function() {
+  data$COMPTABLE <<- data.frame(array(dim = c(data$NCOMPS, 3)), stringsAsFactors = FALSE)
+  names(data$COMPTABLE) <<- c("IC", "ClassName", "To_Remove")
+  if (nrow(data$COMPTABLE) > 0) {
+    data$COMPTABLE$IC <<- 1:data$NCOMPS
+    data$COMPTABLE$ClassName <<- ""
+    data$COMPTABLE$To_Remove <<- ""
+  }
+  widgets$CompTable[] <<- data$COMPTABLE
+  if (nrow(data$COMPTABLE) > 0) {
+      drawTimeFigures(1)
+      svalue(widgets$CompTable) <<- 1
+      drawBrains(1)
+      svalue(widgets$MainPlotLabel) <<- 1
+      prevClass <- loadClassificationFile()
+      if (!is.null(prevClass) && nrow(prevClass) == nrow(widgets$CompTable[]))
+        widgets$CompTable[] <<- prevClass
+  }
+  addHandlerClicked(widgets$CompTable, handler = updatePlots)
 }
 
 # Actually draws brains to main plot
-drawBrains <- function(compNum) {
+.drawBrains <- function(compNum) {
     # heat colors
-    heatcols <- heat.colors(2000)
+    heatcols <- grDevices::heat.colors(2000)
     # cool colors
-    coolcols <- topo.colors(10000)[900:3300]
-    visible(MainPlot) <- TRUE
-    bgCol <- paste("gray", brainBackgroundValue, sep = "")
-    braincols <- gray.colors(n = 20000, start = 0, end = brainColValue, gamma = 0.6)
-    thisbraindat <- braindat[, , , compNum]
-    sliceIndices <- seq(startSlice, endSlice, skipSlices)
-    nCols <- numBrainCols
+    coolcols <- grDevices::topo.colors(10000)[900:3300]
+    visible(widgets$MainPlot) <<- TRUE
+    bgCol <- paste0("gray", settings$graphics$brainBackgroundValue)
+    braincols <- grDevices::gray.colors(n = 20000, start = 0,
+                            end = settings$graphics$brainColValue, gamma = 0.6)
+
+    # If we haven't loaded a standard yet, then we can't draw its data
+    if(is.null(data$STANDARDDATA)) {
+      startSlice <- 1
+      endSlice <- dim(data$MELDATA)[3]
+    } else {
+      startSlice <- data$STARTSLICE
+      endSlice <- data$ENDSLICE
+    }
+    thisbraindat <- data$MELDATA[, , , compNum]
+    sliceIndices <- seq(startSlice, endSlice, settings$graphics$skipSlices)
+    nCols <- settings$graphics$numBrainCols
     nRows <- ceiling(length(sliceIndices)/nCols)
-    par(mar = c(0, 0, 0, 0), oma = c(0, 0, 0, 0), mfrow = c(nRows, nCols), bg = bgCol)
+    par(mar = c(0, 0, 0, 0), oma = c(0, 0, 0, 0),
+        mfrow = c(nRows, nCols), bg = bgCol)
     rnge <- range(thisbraindat)
     for (i in sliceIndices) {
-        image(MNIdat[, , i], col = braincols, axes = F, useRaster = T, zlim = c(23, max(MNIdat[, , i])))
-        if (rnge[2] > 0 && rnge[2] > Threshold)
-            image(thisbraindat[, , i], col = heatcols, axes = F, useRaster = T, zlim = c(Threshold, rnge[2]), add = T)
-        if (rnge[1] < 0 && abs(rnge[1]) > Threshold)
-            image(thisbraindat[, , i] * -1, col = coolcols, axes = F, useRaster = T, zlim = c(Threshold, abs(rnge[1])), add = T)
+        if (!is.null(data$STANDARDDATA)) {
+          image(data$STANDARDDATA[, , i], col = braincols, axes = F,
+                useRaster = T, zlim = c(23, max(data$STANDARDDATA[, , i])))
+        } else {
+          plot.new()
+        }
+        if (rnge[2] > 0 && rnge[2] > settings$graphics$Threshold)
+            image(thisbraindat[, , i], col = heatcols, axes = F,
+                  useRaster = T, zlim = c(settings$graphics$Threshold, rnge[2]),
+                  add = T)
+        if (rnge[1] < 0 && abs(rnge[1]) > settings$graphics$Threshold)
+            image(thisbraindat[, , i] * -1, col = coolcols,
+                  axes = F, useRaster = T,
+                  zlim = c(settings$graphics$Threshold, abs(rnge[1])), add = T)
     }
 }  # End drawBrains
 
 # Draws both time figures, calls other draw functions
-drawTimeFigures <- function(compNum) {
-    tdatFile <- TimeDatFiles[compNum]
-    fdatFile <- FreqDatFiles[compNum]
+.drawTimeFigures <- function(compNum) {
+    tdatFile <- data$TIMEDATFILES[compNum]
+    fdatFile <- data$FREQDATFILES[compNum]
     tdat <- read.table(tdatFile)[[1]]
     fdat <- read.table(fdatFile)[[1]]
-    TR <- getTR()
     nTRs <- length(tdat)
-    drawTimeCourse(tdat, TR)
-    if (svalue(ShowMotionCheckbox))
-        drawMotion(tdat, motionDat, TR)
-    drawFrequency(fdat, TR, nTRs)
+    drawTimeCourse(tdat, data$TR)
+    if (svalue(widgets$ShowMotionCheckbox))
+        drawMotion(tdat, data$MOTIONDAT, data$TR)
+    drawFrequency(fdat, data$TR, nTRs)
 }  # End drawTimeFigures
 
 # Draws timecourse plot
-drawTimeCourse <- function(tdat, TR) {
-    visible(TimePlot) <- TRUE
-    par(mar = c(3, 3, 1, 1), oma = c(0, 0, 0, 0), lwd = TimePlotLineWidth, bg = TimePlotBackgroundColor, fg = TimePlotLabelColor,
-        col.axis = TimePlotLabelColor, col.lab = TimePlotLabelColor)
+.drawTimeCourse <- function(tdat, TR) {
+    visible(widgets$TimePlot) <<- TRUE
+    par(mar = c(3, 3, 1, 1), oma = c(0, 0, 0, 0),
+        lwd = settings$graphics$TimePlotLineWidth,
+        bg = settings$graphics$TimePlotBackgroundColor,
+        fg = settings$graphics$TimePlotLabelColor,
+        col.axis = settings$graphics$TimePlotLabelColor,
+        col.lab = settings$graphics$TimePlotLabelColor)
     seconds <- TR * 1:length(tdat)
-    plot(seconds, tdat, t = "l", ylab = "", xlab = "", col = TimePlotLineColor)
+    plot(seconds, tdat, t = "l", ylab = "", xlab = "",
+         col = settings$graphics$TimePlotLineColor)
     title(ylab = "Normalized Response", line = 2)
     title(xlab = paste("Time (seconds); TR =", TR, "s"), line = 2)
 }  # End drawTimeCourse
 
 # Draws motion data onto timecourse plot
-drawMotion <- function(tdat, motionDat, TR) {
-    visible(TimePlot) <- TRUE
+.drawMotion <- function(tdat, motionDat, TR) {
+    visible(widgets$TimePlot) <<- TRUE
     rnge <- max(tdat) - min(tdat)
     mdat <- motionDat/max(motionDat) * rnge/2
     mdat <- mdat + mean(range(tdat))
     seconds <- TR * 1:length(mdat)
-    alphaNum <- round((MotionPlotLineAlpha/100) * 256)
+    alphaNum <- round((settings$graphics$MotionPlotLineAlpha/100) * 256)
     alphaStr <- sprintf("%0.2x", alphaNum)
-    lineColor <- paste(MotionPlotLineColor, alphaStr, sep = "")
-    lines(seconds, mdat, col = lineColor, lwd = TimePlotLineWidth)
+    lineColor <- paste(settings$graphics$MotionPlotLineColor, alphaStr, sep = "")
+    lines(seconds, mdat, col = lineColor, lwd = settings$graphics$TimePlotLineWidth)
 }  # End drawMotion
 
 # Draws powerspectrum plot
-drawFrequency <- function(fdat, TR, nTRs) {
-    visible(FreqPlot) <- TRUE
+.drawFrequency <- function(fdat, TR, nTRs) {
+    visible(widgets$FreqPlot) <<- TRUE
     maximum <- 1/(TR * nTRs)/2 * nTRs
     indices <- seq(0, maximum, length.out = length(fdat))
-    par(mar = c(3, 3, 1, 1), oma = c(0, 0, 0, 0), lwd = FreqPlotLineWidth, bg = FreqPlotBackgroundColor, fg = FreqPlotLabelColor,
-        col.axis = FreqPlotLabelColor, col.lab = FreqPlotLabelColor)
-    plot(indices, fdat, t = "l", xaxp = c(0, max(indices), 7), ylab = "", xlab = "", col = FreqPlotLineColor)
+    par(mar = c(3, 3, 1, 1), oma = c(0, 0, 0, 0),
+        lwd = settings$graphics$FreqPlotLineWidth,
+        bg = settings$graphics$FreqPlotBackgroundColor,
+        fg = settings$graphics$FreqPlotLabelColor,
+        col.axis = settings$graphics$FreqPlotLabelColor,
+        col.lab = settings$graphics$FreqPlotLabelColor)
+    plot(indices, fdat, t = "l", xaxp = c(0, max(indices), 7), ylab = "",
+         xlab = "", col = settings$graphics$FreqPlotLineColor)
     title(ylab = "Power", line = 2)
     title(xlab = "Frequency (in Hz)", line = 2)
 }  # End drawFrequency
 
+#==============================================================================#
+
+
+
+#==============================================================================#
+# Functions for testing validity of inputs
+
+testICADIR <- function(ICADIR) {
+  if (!dir.exists(ICADIR)) stop(paste('ICA directory does not exist:', ICADIR), call. = FALSE)
+  if (!file.exists(paste0(ICADIR, '/melodic_IC.nii.gz')) && !file.exists(paste0(ICADIR, '/melodic_IC.nii')))
+    stop(paste('No "melodic_IC" file found in ICA directory:', ICADIR), call. = FALSE)
+}
+
+testStandardFile <- function(standard_file) {
+  if (!file.exists(standard_file)) stop(paste('The standard file specified does not exist:', standard_file))
+}
+
+testMotionFile <- function(motion_file) {
+  if (!file.exists(motion_file)) stop(paste('The motion file specified does not exist:', motion_file))
+}
+
+# END Functions for testing validity of inputs
 #==============================================================================#
 
 
@@ -604,7 +628,26 @@ Viewr <- setRefClass("Viewr", fields = list(
   status = "list",
   data = "list"
 ), methods = list(
-  createGUI = createGUI
+  createGUI = .createGUI,
+  drawFrequency = .drawFrequency,
+  drawMotion = .drawMotion,
+  drawTimeCourse = .drawTimeCourse,
+  drawTimeFigures = .drawTimeFigures,
+  drawBrains = .drawBrains,
+  initializePlot = .initializePlot,
+  loadStandard = .loadStandard,
+  getTR = .getTR,
+  colorPickerHandler = .colorPickerHandler,
+  getICADIR = .getICADIR,
+  loadICADIR = .loadICADIR,
+  saveClassificationFile = .saveClassificationFile,
+  loadClassificationFile = .loadClassificationFile,
+  loadMotionFile = .loadMotionFile,
+  updateClassLabel = .updateClassLabel,
+  updatePlots = .updatePlots,
+  saveGraphicsSettings = .saveGraphicsSettings,
+  loadGraphicsSettings = .loadGraphicsSettings,
+  restoreDefaultGraphicsSettings = .restoreDefaultGraphicsSettings
 )
 )
 
@@ -684,24 +727,20 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     viewr <- createViewrObject()
 
     # test validity of inputs
-    if (dir.exists(melodic_dir)) {
-        viewr$data$ICADIR <- melodic_dir
-    } else {
-        stop(paste("The provided melodic_dir does not exist:", melodic_dir))
-    }
+    melodic_dir <- normalizePath(melodic_dir)
+    testICADIR(melodic_dir)
+    if (!is.null(standard_file)) testStandardFile(standard_file)
+    if (!is.null(motion_file))   testMotionFile(motion_file)
 
-    # TODO: write specific function to test standard_file
-    # TODO: write specific function to test motion_file
+    # move to melodic dir (might not be necessary)
+    oldwd <- setwd(melodic_dir)
+    on.exit(setwd(oldwd), add = TRUE)
 
-    # TODO: find where this code should go
-    #if (!is.null(ICADIR)) {
-      #setwd(ICADIR)
-      #loadICADIR(ICADIR)
-    #} else {
-      #initializePlot()
-    #}
+    # Begin loading data
+    viewr$data$ICADIR <- melodic_dir
 
     viewr$createGUI()
+    viewr$loadICADIR()
 
     waitForExit <- function(...) {
       while (!viewr$status$exit) {
@@ -710,14 +749,16 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     }
 
     addHandlerUnrealize(viewr$win , handler = function(h, ...) {
-      viewr$status$exit <<- TRUE
+      viewr$status$exit <- TRUE
+      dispose(viewr$win)
     })
 
     if (!interactive()) {
+      cat('Not interactive\n')
       waitForExit()
     }
 
-    return(viewr)
+    invisible(viewr)
 }  # End melviewr function definition
 #==============================================================================#
 

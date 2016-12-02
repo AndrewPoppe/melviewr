@@ -17,6 +17,6 @@ Imports:
     RGtk2,
     cairoDevice
 Depends:
-    gWidgetsRGtk2,
-    gWidgets
+    gWidgets2RGtk2,
+    gWidgets2
 RoxygenNote: 5.0.1
