@@ -10,12 +10,13 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports:
-    gWidgetsRGtk2,
     gtools,
     RColorBrewer,
     RNifti,
     grDevices,
-    RGtk2
+    RGtk2,
+    cairoDevice
 Depends:
+    gWidgetsRGtk2,
     gWidgets
 RoxygenNote: 5.0.1
