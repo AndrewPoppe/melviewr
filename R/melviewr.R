@@ -216,196 +216,140 @@ createControlButtons <- function(viewr) {
 
 
 
-#==============================================================================#
-# Function to initialize viewr object
-createViewrObject <- function() {
-    viewr <- list(
-        win = NULL,
-        widgets = list(),
-        settings = list(),
-        status = list(
-          suppressRedraw = FALSE,
-          exit = FALSE
-        ),
-        data = list(
-          ICADIR = NULL,
-          MOTIONFILE = NULL,
-          MOTIONDATA = NULL,
-          MELDATA = NULL,
-          STANDARDFILE = NULL,
-          STANDARDDATA = NULL,
-          FSLDIR = NULL,
-          MELDIM = NULL,
-          NCOMPS = 0,
-          TR = NULL,
-          COMPTABLE = data.frame(array(dim = c(0, 3)),
-                                 stringsAsFactors = FALSE),
-          TIMEDATFILES = NULL,
-          FREQDATFILES = NULL,
-          STARTSLICE = NULL,
-          ENDSLICE = NULL
-        )
-      )
-    names(viewr$data$COMPTABLE) <- c("IC", "ClassName", "To_Remove")
-    viewr$settings$graphicsDefaults <- list(
-        skipSlices = 3,
-        numBrainCols = 9,
-        Threshold = 2.3,
-        brainColValue = 0.5,
-        brainBackgroundValue = 0,
-        TimePlotLineColor = "black",
-        TimePlotLineWidth = 0.5,
-        TimePlotBackgroundColor = "white",
-        TimePlotLabelColor = "black",
-        FreqPlotLineColor = "black",
-        FreqPlotLineWidth = 0.5,
-        FreqPlotBackgroundColor = "white",
-        FreqPlotLabelColor = "black",
-        MotionPlotLineColor = "#FF0000",
-        MotionPlotLineAlpha = 50
-      )
-
-    return(viewr)
-}  # End createViewrObject
-#==============================================================================#
-
 
 
 #==============================================================================#
 # Function for creating and populating the main GUI
-createGUI <- function(viewr) {
+createGUI <- function() {
 
     # main window
-    viewr$win <- gwindow("Melodic Results Viewer")
-    size(viewr$win) <- c(1600, 1000)
+    win <<- gwindow("Melodic Results Viewer")
+    size(win) <<- c(1600, 1000)
     Sys.sleep(0.1)
-    size(viewr$win) <- c(500, 500)
+    size(win) <<- c(500, 500)
 
     # big group
-    viewr$widgets$bigGroup <- glayout(horizontal = FALSE, container = viewr$win, expand = TRUE)
+    widgets$bigGroup <<- glayout(horizontal = FALSE, container = win, expand = TRUE)
 
     # group for the top portion (main axial viewer and component table)
-    viewr$widgets$topGroup <- glayout(horizontal = TRUE, container = viewr$widgets$bigGroup, expand = TRUE)
-    viewr$widgets$bigGroup[1, 1, expand = TRUE] <- viewr$widgets$topGroup
+    widgets$topGroup <<- glayout(horizontal = TRUE, container = widgets$bigGroup, expand = TRUE)
+    widgets$bigGroup[1, 1, expand = TRUE] <<- widgets$topGroup
 
     # group for the bottom portion
-    viewr$widgets$bottomGroup <- ggroup(horizontal = TRUE, container = viewr$widgets$bigGroup, expand = TRUE)
-    viewr$widgets$bigGroup[2, 1, expand = TRUE] <- viewr$widgets$bottomGroup
+    widgets$bottomGroup <<- ggroup(horizontal = TRUE, container = widgets$bigGroup, expand = TRUE)
+    widgets$bigGroup[2, 1, expand = TRUE] <<- widgets$bottomGroup
 
     # group for control buttons
-    viewr$widgets$buttonGroup <- ggroup(horizontal = TRUE, container = viewr$widgets$bigGroup)
-    viewr$widgets$bigGroup[3, 1] <- viewr$widgets$buttonGroup
+    widgets$buttonGroup <<- ggroup(horizontal = TRUE, container = widgets$bigGroup)
+    widgets$bigGroup[3, 1] <<- widgets$buttonGroup
 
     # Populate Top Group
-    viewr$widgets$MainPlotGroup <- ggroup(horizontal = FALSE, container = viewr$widgets$topGroup, expand = TRUE)
-    viewr$widgets$topGroup[1, 1:5, expand = TRUE] <- viewr$widgets$MainPlotGroup
-    viewr$widgets$MainPlotLabel <- glabel("", container = viewr$widgets$MainPlotGroup)
-    viewr$widgets$MainPlotFrame <- gframe("", container = viewr$widgets$MainPlotGroup, expand = TRUE)
-    viewr$widgets$MainPlot <- ggraphics(width = 300, height = 300, container = viewr$widgets$MainPlotFrame, handler = updatePlots,
+    widgets$MainPlotGroup <<- ggroup(horizontal = FALSE, container = widgets$topGroup, expand = TRUE)
+    widgets$topGroup[1, 1:5, expand = TRUE] <<- widgets$MainPlotGroup
+    widgets$MainPlotLabel <<- glabel("", container = widgets$MainPlotGroup)
+    widgets$MainPlotFrame <<- gframe("", container = widgets$MainPlotGroup, expand = TRUE)
+    widgets$MainPlot <<- ggraphics(width = 300, height = 300, container = widgets$MainPlotFrame, handler = updatePlots,
         expand = TRUE)
-    viewr$widgets$CompTable <- gtable(viewr$data$COMPTABLE, container = viewr$widgets$topGroup, expand = TRUE)
-    viewr$widgets$topGroup[1, 6, expand = TRUE] <- viewr$widgets$CompTable
+    widgets$CompTable <<- gtable(data$COMPTABLE, container = widgets$topGroup, expand = TRUE)
+    widgets$topGroup[1, 6, expand = TRUE] <<- widgets$CompTable
 
     # Populate Bottom Group
-    viewr$widgets$PlotGroup <- ggroup(horizontal = FALSE, container = viewr$widgets$bottomGroup, expand = TRUE)
-    viewr$widgets$TimeFrame <- gframe("Timecourse", container = viewr$widgets$PlotGroup, expand = TRUE)
-    viewr$widgets$TimePlot <- ggraphics(width = 300, height = 100, container = viewr$widgets$TimeFrame, expand = TRUE)
-    viewr$widgets$FreqFrame <- gframe("Powerspectrum of Timecourse", container = viewr$widgets$PlotGroup, expand = TRUE)
-    viewr$widgets$FreqPlot <- ggraphics(width = 300, height = 100, container = viewr$widgets$FreqFrame, expand = TRUE)
-    viewr$widgets$GraphicsFrame <- gframe("Graphics Options", container = viewr$widgets$bottomGroup)
-    viewr$widgets$ClassificationFrame <- gframe("Classification", container = viewr$widgets$bottomGroup)
+    widgets$PlotGroup <<- ggroup(horizontal = FALSE, container = widgets$bottomGroup, expand = TRUE)
+    widgets$TimeFrame <<- gframe("Timecourse", container = widgets$PlotGroup, expand = TRUE)
+    widgets$TimePlot <<- ggraphics(width = 300, height = 100, container = widgets$TimeFrame, expand = TRUE)
+    widgets$FreqFrame <<- gframe("Powerspectrum of Timecourse", container = widgets$PlotGroup, expand = TRUE)
+    widgets$FreqPlot <<- ggraphics(width = 300, height = 100, container = widgets$FreqFrame, expand = TRUE)
+    widgets$GraphicsFrame <<- gframe("Graphics Options", container = widgets$bottomGroup)
+    widgets$ClassificationFrame <<- gframe("Classification", container = widgets$bottomGroup)
     Sys.sleep(0.5)
 
     # Populate Graphics Frame
-    viewr$widgets$GraphicsTable <- glayout(container = viewr$widgets$GraphicsFrame)
-    viewr$widgets$GraphicsTable[1, 1] <- glabel("# Columns:", container = viewr$widgets$GraphicsTable)
-    viewr$widgets$ColNumInput <- gcombobox(1:100, selected = viewr$settings$graphicsDefaults$numBrainCols, container = viewr$widgets$GraphicsTable,
+    widgets$GraphicsTable <<- glayout(container = widgets$GraphicsFrame)
+    widgets$GraphicsTable[1, 1] <<- glabel("# Columns:", container = widgets$GraphicsTable)
+    widgets$ColNumInput <<- gcombobox(1:100, selected = settings$graphicsDefaults$numBrainCols, container = widgets$GraphicsTable,
         handler = updatePlots)
-    viewr$widgets$GraphicsTable[1, 2] <- viewr$widgets$ColNumInput
-    viewr$widgets$GraphicsTable[2, 1] <- glabel("Skip Slices:", container = viewr$widgets$GraphicsTable)
-    viewr$widgets$SkipInput <- gcombobox(1:100, selected = viewr$settings$graphicsDefaults$skipSlices, container = viewr$widgets$GraphicsTable,
+    widgets$GraphicsTable[1, 2] <<- widgets$ColNumInput
+    widgets$GraphicsTable[2, 1] <<- glabel("Skip Slices:", container = widgets$GraphicsTable)
+    widgets$SkipInput <<- gcombobox(1:100, selected = settings$graphicsDefaults$skipSlices, container = widgets$GraphicsTable,
         handler = updatePlots)
-    viewr$widgets$GraphicsTable[2, 2] <- viewr$widgets$SkipInput
-    viewr$widgets$GraphicsTable[3, 1] <- glabel("Threshold: +/-", container = viewr$widgets$GraphicsTable)
-    viewr$widgets$ThresholdInput <- gedit("2.3", container = viewr$widgets$GraphicsTable, handler = updatePlots)
-    viewr$widgets$GraphicsTable[3, 2] <- viewr$widgets$ThresholdInput
-    viewr$widgets$GraphicsTable[4, 1] <- glabel("Brain darkness:", container = viewr$widgets$GraphicsTable)
-    viewr$widgets$BrainColSlider <- gspinbutton(from = 0, to = 1, by = 0.2, value = viewr$settings$graphicsDefaults$brainColValue,
-        container = viewr$widgets$GraphicsTable, handler = updatePlots)
-    viewr$widgets$GraphicsTable[4, 2] <- viewr$widgets$BrainColSlider
-    viewr$widgets$GraphicsTable[5, 1] <- glabel("Background darkness:", container = viewr$widgets$GraphicsTable)
-    viewr$widgets$BackgroundSlider <- gspinbutton(from = 0, to = 100, by = 20, value = viewr$settings$graphicsDefaults$brainBackgroundValue,
-        container = viewr$widgets$GraphicsTable, handler = updatePlots)
-    viewr$widgets$GraphicsTable[5, 2] <- viewr$widgets$BackgroundSlider
-    viewr$widgets$ShowMotionCheckbox <- gcheckbox("Show Motion Plot", checked = !is.null(viewr$data$MOTIONFILE),
-        container = viewr$widgets$GraphicsTable, handler = function(h, ...) {
-                                      drawTimeFigures(svalue(viewr$widgets$CompTable))
+    widgets$GraphicsTable[2, 2] <<- widgets$SkipInput
+    widgets$GraphicsTable[3, 1] <<- glabel("Threshold: +/-", container = widgets$GraphicsTable)
+    widgets$ThresholdInput <<- gedit("2.3", container = widgets$GraphicsTable, handler = updatePlots)
+    widgets$GraphicsTable[3, 2] <<- widgets$ThresholdInput
+    widgets$GraphicsTable[4, 1] <<- glabel("Brain darkness:", container = widgets$GraphicsTable)
+    widgets$BrainColSlider <<- gspinbutton(from = 0, to = 1, by = 0.2, value = settings$graphicsDefaults$brainColValue,
+        container = widgets$GraphicsTable, handler = updatePlots)
+    widgets$GraphicsTable[4, 2] <<- widgets$BrainColSlider
+    widgets$GraphicsTable[5, 1] <<- glabel("Background darkness:", container = widgets$GraphicsTable)
+    widgets$BackgroundSlider <<- gspinbutton(from = 0, to = 100, by = 20, value = settings$graphicsDefaults$brainBackgroundValue,
+        container = widgets$GraphicsTable, handler = updatePlots)
+    widgets$GraphicsTable[5, 2] <<- widgets$BackgroundSlider
+    widgets$ShowMotionCheckbox <<- gcheckbox("Show Motion Plot", checked = !is.null(data$MOTIONFILE),
+        container = widgets$GraphicsTable, handler = function(h, ...) {
+                                      drawTimeFigures(svalue(widgets$CompTable))
                                     })
-    if (is.null(viewr$data$MOTIONFILE)) {
-      enabled(viewr$widgets$ShowMotionCheckbox) <- FALSE
+    if (is.null(data$MOTIONFILE)) {
+      enabled(widgets$ShowMotionCheckbox) <<- FALSE
     }
-    viewr$widgets$GraphicsTable[6, 1] <- viewr$widgets$ShowMotionCheckbox
+    widgets$GraphicsTable[6, 1] <<- widgets$ShowMotionCheckbox
 
-    viewr$widgets$TimeOptionsToggle <- gexpandgroup("Timecourse Plot Options", horizontal = FALSE, container = viewr$widgets$GraphicsTable)
-    viewr$widgets$GraphicsTable[7, 1:2] <- viewr$widgets$TimeOptionsToggle
-    viewr$widgets$timeCourseLineColorButton <- gbutton("Set Line Color", container = viewr$widgets$TimeOptionsToggle, action = "TimePlotLineColor", handler = colorPickerHandler)
-    viewr$widgets$timeCourseBgColorButton <- gbutton("Set Background Color", container = viewr$widgets$TimeOptionsToggle, action = "TimePlotBackgroundColor",
+    widgets$TimeOptionsToggle <<- gexpandgroup("Timecourse Plot Options", horizontal = FALSE, container = widgets$GraphicsTable)
+    widgets$GraphicsTable[7, 1:2] <<- widgets$TimeOptionsToggle
+    widgets$timeCourseLineColorButton <<- gbutton("Set Line Color", container = widgets$TimeOptionsToggle, action = "TimePlotLineColor", handler = colorPickerHandler)
+    widgets$timeCourseBgColorButton <<- gbutton("Set Background Color", container = widgets$TimeOptionsToggle, action = "TimePlotBackgroundColor",
         handler = colorPickerHandler)
-    viewr$widgets$timeCourseLabelsColorButton <- gbutton("Set Labels Color", container = viewr$widgets$TimeOptionsToggle, action = "TimePlotLabelColor", handler = colorPickerHandler)
-    viewr$widgets$timeCourseLineWidthGroup <- ggroup(horizontal = TRUE, container = viewr$widgets$TimeOptionsToggle)
-    viewr$widgets$timeCourseLineWidthLabel <- glabel("Set Line Width:", container = viewr$widgets$timeCourseLineWidthGroup)
-    viewr$widgets$timeCourseLineWidthChooser <- gspinbutton(from = 0.1, to = 3, by = 0.1, value = viewr$settings$graphics$TimePlotLineWidth, container = viewr$widgets$timeCourseLineWidthGroup,
+    widgets$timeCourseLabelsColorButton <<- gbutton("Set Labels Color", container = widgets$TimeOptionsToggle, action = "TimePlotLabelColor", handler = colorPickerHandler)
+    widgets$timeCourseLineWidthGroup <<- ggroup(horizontal = TRUE, container = widgets$TimeOptionsToggle)
+    widgets$timeCourseLineWidthLabel <<- glabel("Set Line Width:", container = widgets$timeCourseLineWidthGroup)
+    widgets$timeCourseLineWidthChooser <<- gspinbutton(from = 0.1, to = 3, by = 0.1, value = settings$graphics$TimePlotLineWidth, container = widgets$timeCourseLineWidthGroup,
         handler = function(h, ...) {
-            viewr$settings$graphics$TimePlotLineWidth <- svalue(viewr$widgets$timeCourseLineWidthChooser)
-            drawTimeFigures(svalue(viewr$widgets$CompTable))
+            settings$graphics$TimePlotLineWidth <<- svalue(widgets$timeCourseLineWidthChooser)
+            drawTimeFigures(svalue(widgets$CompTable))
         })
 
-    viewr$widgets$FreqOptionsToggle <- gexpandgroup("Powerspectrum Plot Options", horizontal = FALSE, container = viewr$widgets$GraphicsTable)
-    viewr$widgets$GraphicsTable[8, 1:2] <- viewr$widgets$FreqOptionsToggle
-    viewr$widgets$freqLineColorButton <- gbutton("Set Line Color", container = viewr$widgets$FreqOptionsToggle, action = "FreqPlotLineColor", handler = colorPickerHandler)
-    viewr$widgets$freqBgColorButton <- gbutton("Set Background Color", container = viewr$widgets$FreqOptionsToggle, action = "FreqPlotBackgroundColor", handler = colorPickerHandler)
-    viewr$widgets$freqLabelsColorButton <- gbutton("Set Labels Color", container = viewr$widgets$FreqOptionsToggle, action = "FreqPlotLabelColor", handler = colorPickerHandler)
-    viewr$widgets$freqLineWidthGroup <- ggroup(horizontal = TRUE, container = viewr$widgets$FreqOptionsToggle)
-    viewr$widgets$freqLineWidthLabel <- glabel("Set Line Width:", container = viewr$widgets$freqLineWidthGroup)
-    viewr$widgets$freqLineWidthChooser <- gspinbutton(from = 0.1, to = 3, by = 0.1, value = viewr$settings$graphics$FreqPlotLineWidth, container = viewr$widgets$freqLineWidthGroup,
+    widgets$FreqOptionsToggle <<- gexpandgroup("Powerspectrum Plot Options", horizontal = FALSE, container = widgets$GraphicsTable)
+    widgets$GraphicsTable[8, 1:2] <<- widgets$FreqOptionsToggle
+    widgets$freqLineColorButton <<- gbutton("Set Line Color", container = widgets$FreqOptionsToggle, action = "FreqPlotLineColor", handler = colorPickerHandler)
+    widgets$freqBgColorButton <<- gbutton("Set Background Color", container = widgets$FreqOptionsToggle, action = "FreqPlotBackgroundColor", handler = colorPickerHandler)
+    widgets$freqLabelsColorButton <<- gbutton("Set Labels Color", container = widgets$FreqOptionsToggle, action = "FreqPlotLabelColor", handler = colorPickerHandler)
+    widgets$freqLineWidthGroup <<- ggroup(horizontal = TRUE, container = widgets$FreqOptionsToggle)
+    widgets$freqLineWidthLabel <<- glabel("Set Line Width:", container = widgets$freqLineWidthGroup)
+    widgets$freqLineWidthChooser <<- gspinbutton(from = 0.1, to = 3, by = 0.1, value = settings$graphics$FreqPlotLineWidth, container = widgets$freqLineWidthGroup,
         handler = function(h, ...) {
-            viewr$settings$graphics$FreqPlotLineWidth <- svalue(viewr$widgets$freqLineWidthChooser)
-            drawTimeFigures(svalue(viewr$widgets$CompTable))
+            settings$graphics$FreqPlotLineWidth <<- svalue(widgets$freqLineWidthChooser)
+            drawTimeFigures(svalue(widgets$CompTable))
         })
 
-    viewr$widgets$MotionOptionsToggle <- gexpandgroup("Motion Plot Options", horizontal = FALSE, container = viewr$widgets$GraphicsTable)
-    viewr$widgets$GraphicsTable[9, 1:2] <- viewr$widgets$MotionOptionsToggle
-    viewr$widgets$motionLineColorButton <- gbutton("Set Line Color", container = viewr$widgets$MotionOptionsToggle, action = "MotionPlotLineColor", handler = colorPickerHandler)
-    viewr$widgets$motionLineAlphaGroup <- ggroup(horizontal = T, container = viewr$widgets$MotionOptionsToggle)
-    viewr$widgets$motionLineAlphaLabel <- glabel("Line Opacity:", container = viewr$widgets$motionLineAlphaGroup)
-    viewr$widgets$motionLineAlphaChooser <- gspinbutton(from = 0, to = 99, by = 10, value = viewr$settings$graphics$MotionPlotLineAlpha, container = viewr$widgets$motionLineAlphaGroup,
+    widgets$MotionOptionsToggle <<- gexpandgroup("Motion Plot Options", horizontal = FALSE, container = widgets$GraphicsTable)
+    widgets$GraphicsTable[9, 1:2] <<- widgets$MotionOptionsToggle
+    widgets$motionLineColorButton <<- gbutton("Set Line Color", container = widgets$MotionOptionsToggle, action = "MotionPlotLineColor", handler = colorPickerHandler)
+    widgets$motionLineAlphaGroup <<- ggroup(horizontal = T, container = widgets$MotionOptionsToggle)
+    widgets$motionLineAlphaLabel <<- glabel("Line Opacity:", container = widgets$motionLineAlphaGroup)
+    widgets$motionLineAlphaChooser <<- gspinbutton(from = 0, to = 99, by = 10, value = settings$graphics$MotionPlotLineAlpha, container = widgets$motionLineAlphaGroup,
         handler = function(h, ...) {
-            viewr$settings$graphics$MotionPlotLineAlpha <- svalue(viewr$widgets$motionLineAlphaChooser)
-            drawTimeFigures(svalue(viewr$widgets$CompTable))
+            settings$graphics$MotionPlotLineAlpha <<- svalue(widgets$motionLineAlphaChooser)
+            drawTimeFigures(svalue(widgets$CompTable))
         })
-    if (is.null(viewr$data$MOTIONFILE))
-        enabled(viewr$widgets$MotionOptionsToggle) <- FALSE
+    if (is.null(data$MOTIONFILE))
+        enabled(widgets$MotionOptionsToggle) <<- FALSE
 
-    viewr$widgets$GraphicsTable[10, 1:2] <- gbutton("Save Graphics Settings", container = viewr$widgets$GraphicsTable, handler = saveGraphicsSettings)
-    viewr$widgets$GraphicsTable[11, 1:2] <- gbutton("Restore Default Settings", container = viewr$widgets$GraphicsTable, handler = restoreDefaultGraphicsSettings)
+    widgets$GraphicsTable[10, 1:2] <<- gbutton("Save Graphics Settings", container = widgets$GraphicsTable, handler = saveGraphicsSettings)
+    widgets$GraphicsTable[11, 1:2] <<- gbutton("Restore Default Settings", container = widgets$GraphicsTable, handler = restoreDefaultGraphicsSettings)
 
     # Populate Classification Frame
     classificationOptions <- c("Signal", "Unknown", "Unclassified Noise", "Movement", "Cardiac", "White matter", "Non-brain", "MRI",
                                "Susceptibility-motion", "Sagittal sinus", "Respiratory")
-    viewr$widgets$ClassificationRadio <- gradio(classificationOptions, horizontal = FALSE, container = viewr$widgets$ClassificationFrame, handler = updateClassLabel)
+    widgets$ClassificationRadio <<- gradio(classificationOptions, horizontal = FALSE, container = widgets$ClassificationFrame, handler = updateClassLabel)
 
 
     # Populate button group
-    viewr$widgets$ButtonFrame <- gframe("", horizontal = TRUE, container = viewr$widgets$buttonGroup)
-    viewr$widgets$LoadButton <- gbutton("Load ICA directory", container = viewr$widgets$ButtonFrame, handler = getICADIR)
-    viewr$widgets$LoadMotionButton <- gbutton("Load Motion File", container = viewr$widgets$ButtonFrame, handler = loadMotionFile)
-    viewr$widgets$SaveButton <- gbutton("Save Classification File", container = viewr$widgets$ButtonFrame, handler = saveClassificationFile)
-    viewr$widgets$ExitButton <- gbutton("Exit", container = viewr$widgets$ButtonFrame, handler = function(h, ...){
-      viewr$status$exit <- TRUE
+    widgets$ButtonFrame <<- gframe("", horizontal = TRUE, container = widgets$buttonGroup)
+    widgets$LoadButton <<- gbutton("Load ICA directory", container = widgets$ButtonFrame, handler = getICADIR)
+    widgets$LoadMotionButton <<- gbutton("Load Motion File", container = widgets$ButtonFrame, handler = loadMotionFile)
+    widgets$SaveButton <<- gbutton("Save Classification File", container = widgets$ButtonFrame, handler = saveClassificationFile)
+    widgets$ExitButton <<- gbutton("Exit", container = widgets$ButtonFrame, handler = function(h, ...){
+      status$exit <<- TRUE
     })
-
-
-    return(viewr)
 
 }  # End createGUI function definition
 #==============================================================================#
@@ -651,6 +595,72 @@ drawFrequency <- function(fdat, TR, nTRs) {
 
 
 #==============================================================================#
+# Function to initialize viewr object
+
+Viewr <- setRefClass("Viewr", fields = list(
+  win = "gWindow",
+  widgets = "list",
+  settings = "list",
+  status = "list",
+  data = "list"
+), methods = list(
+  createGUI = createGUI
+)
+)
+
+createViewrObject <- function() {
+  viewr <- Viewr$new(
+    status = list(
+      suppressRedraw = FALSE,
+      exit = FALSE
+    ),
+    settings = list(
+      graphicsDefaults = list(
+        skipSlices = 3,
+        numBrainCols = 9,
+        Threshold = 2.3,
+        brainColValue = 0.5,
+        brainBackgroundValue = 0,
+        TimePlotLineColor = "black",
+        TimePlotLineWidth = 0.5,
+        TimePlotBackgroundColor = "white",
+        TimePlotLabelColor = "black",
+        FreqPlotLineColor = "black",
+        FreqPlotLineWidth = 0.5,
+        FreqPlotBackgroundColor = "white",
+        FreqPlotLabelColor = "black",
+        MotionPlotLineColor = "#FF0000",
+        MotionPlotLineAlpha = 50
+      )
+    ),
+    data = list(
+      ICADIR = NULL,
+      MOTIONFILE = NULL,
+      MOTIONDATA = NULL,
+      MELDATA = NULL,
+      STANDARDFILE = NULL,
+      STANDARDDATA = NULL,
+      FSLDIR = NULL,
+      MELDIM = NULL,
+      NCOMPS = 0,
+      TR = NULL,
+      COMPTABLE = data.frame(array(dim = c(0, 3)),
+                             stringsAsFactors = FALSE),
+      TIMEDATFILES = NULL,
+      FREQDATFILES = NULL,
+      STARTSLICE = NULL,
+      ENDSLICE = NULL
+    )
+  )
+  names(viewr$data$COMPTABLE) <- c("IC", "ClassName", "To_Remove")
+  return(viewr)
+}  # End createViewrObject
+#==============================================================================#
+
+
+
+
+#==============================================================================#
 # Main function the user will see.
 #' melviewr
 #'
@@ -671,7 +681,7 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     options(guiToolkit = "RGtk2")
 
     # make viewr object
-    viewr <<- createViewrObject()
+    viewr <- createViewrObject()
 
     # test validity of inputs
     if (dir.exists(melodic_dir)) {
@@ -691,7 +701,7 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
       #initializePlot()
     #}
 
-    viewr <<- createGUI(viewr)
+    viewr$createGUI()
 
     waitForExit <- function(...) {
       while (!viewr$status$exit) {
