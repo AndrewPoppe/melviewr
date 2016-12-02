@@ -15,7 +15,8 @@ Imports:
     RNifti,
     grDevices,
     RGtk2,
-    cairoDevice
+    cairoDevice,
+    methods
 Depends:
     gWidgets2RGtk2,
     gWidgets2
