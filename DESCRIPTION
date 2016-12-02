@@ -18,6 +18,6 @@ Imports:
     cairoDevice,
     methods
 Depends:
-    gWidgets2RGtk2,
-    gWidgets2
+    gWidgetsRGtk2,
+    gWidgets
 RoxygenNote: 5.0.1

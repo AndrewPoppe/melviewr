@@ -199,7 +199,7 @@ colorPicker <- function() {
     widgets$topGroup[1, 1:5, expand = TRUE] <<- widgets$MainPlotGroup
     widgets$MainPlotLabel <<- glabel("", container = widgets$MainPlotGroup)
     widgets$MainPlotFrame <<- gframe("", container = widgets$MainPlotGroup, expand = TRUE)
-    widgets$MainPlot <<- ggraphics(width = 300, height = 300, container = widgets$MainPlotFrame, handler = .self$updatePlots,
+    widgets$MainPlot <<- ggraphics(width = 150, height = 300, container = widgets$MainPlotFrame, handler = .self$updatePlots,
         expand = TRUE)
     widgets$CompTable <<- gtable(data$COMPTABLE, container = widgets$topGroup, expand = TRUE)
     widgets$topGroup[1, 6, expand = TRUE] <<- widgets$CompTable
@@ -207,9 +207,9 @@ colorPicker <- function() {
     # Populate Bottom Group
     widgets$PlotGroup <<- ggroup(horizontal = FALSE, container = widgets$bottomGroup, expand = TRUE)
     widgets$TimeFrame <<- gframe("Timecourse", container = widgets$PlotGroup, expand = TRUE)
-    widgets$TimePlot <<- ggraphics(width = 300, height = 100, container = widgets$TimeFrame, expand = TRUE)
+    widgets$TimePlot <<- ggraphics(width = 150, height = 50, container = widgets$TimeFrame, expand = TRUE)
     widgets$FreqFrame <<- gframe("Powerspectrum of Timecourse", container = widgets$PlotGroup, expand = TRUE)
-    widgets$FreqPlot <<- ggraphics(width = 300, height = 100, container = widgets$FreqFrame, expand = TRUE)
+    widgets$FreqPlot <<- ggraphics(width = 150, height = 50, container = widgets$FreqFrame, expand = TRUE)
     widgets$GraphicsFrame <<- gframe("Graphics Options", container = widgets$bottomGroup)
     widgets$ClassificationFrame <<- gframe("Classification", container = widgets$bottomGroup)
     Sys.sleep(0.5)
@@ -400,12 +400,23 @@ melviewr will be unable to load timecourse and powerspectrum data files.",
              title = "Warning", icon = "warning", parent = win)
   } else {
     # get time and frequency images
-    data$TIMEDATFILES <<- gtools::mixedsort(list.files(reportDir,
-                                            pattern = "^t.*txt",
-                                            full.names = TRUE))
-    data$FREQDATFILES <<- gtools::mixedsort(list.files(reportDir,
-                                            pattern = "^f.*txt",
-                                            full.names = TRUE))
+    tFiles <- gtools::mixedsort(list.files(reportDir,
+                                           pattern = "^t.*txt",
+                                           full.names = TRUE))
+    fFiles <- gtools::mixedsort(list.files(reportDir,
+                                           pattern = "^f.*txt",
+                                           full.names = TRUE))
+    if(length(tFiles) != length(fFiles) || length(tFiles) != data$NCOMPS) {
+      gmessage("There is something wrong with the number of timecourse/powerspectrum files in\
+ the 'report' directory of the provided ICA directory. The t*.txt and f*.txt files should be equal \
+in number and should also equal the number of volumes in the 'melodic_IC' 4D Nifti file.
+
+Until these conditions are met, timecourse and powerspectrum figures cannot be displayed.",
+               title = "Warning", icon = "warning", parent = win)
+    } else {
+      data$TIMEDATFILES <<- tFiles
+      data$FREQDATFILES <<- fFiles
+    }
   }
 
   data$TR <<- getTR()
@@ -431,14 +442,21 @@ melviewr will be unable to load timecourse and powerspectrum data files.",
 
 # Gets the TR for a given ica directory for use with timecourse and frequency plots
 .getTR <- function() {
+  logfile <- paste0(data$ICADIR, '/log.txt')
+  if(!file.exists(logfile)) {
+    gmessage("Warning: No log file was found in the ICA directory specified. A TR of 1 second will be assumed when \
+creating timecourse and powerspectrum plots.")
+    TR <- 1
+  } else {
     logtxt <- scan(paste(data$ICADIR, "/log.txt", sep = ""), "character", quiet = TRUE)
     TRstring <- grep("--tr=", logtxt, value = TRUE)
     TR <- as.numeric(gsub("--tr=", "", TRstring))
-    if(length(TR) < 1) {
-      return(NULL)
-    } else {
-      return(TR)
-    }
+  }
+  if(length(TR) < 1) {
+    return(NULL)
+  } else {
+    return(TR)
+  }
 }  # End getTR
 
 # Load standard file data
@@ -535,15 +553,16 @@ melviewr will be unable to load timecourse and powerspectrum data files.",
 
 # Draws both time figures, calls other draw functions
 .drawTimeFigures <- function(compNum) {
-    tdatFile <- data$TIMEDATFILES[compNum]
-    fdatFile <- data$FREQDATFILES[compNum]
-    tdat <- read.table(tdatFile)[[1]]
-    fdat <- read.table(fdatFile)[[1]]
-    nTRs <- length(tdat)
-    drawTimeCourse(tdat, data$TR)
-    if (svalue(widgets$ShowMotionCheckbox))
-        drawMotion(tdat, data$MOTIONDAT, data$TR)
-    drawFrequency(fdat, data$TR, nTRs)
+  if(is.null(data$TIMEDATFILES)) return()
+  tdatFile <- data$TIMEDATFILES[compNum]
+  fdatFile <- data$FREQDATFILES[compNum]
+  tdat <- read.table(tdatFile)[[1]]
+  fdat <- read.table(fdatFile)[[1]]
+  nTRs <- length(tdat)
+  drawTimeCourse(tdat, data$TR)
+  if (svalue(widgets$ShowMotionCheckbox))
+      drawMotion(tdat, data$MOTIONDAT, data$TR)
+  drawFrequency(fdat, data$TR, nTRs)
 }  # End drawTimeFigures
 
 # Draws timecourse plot
