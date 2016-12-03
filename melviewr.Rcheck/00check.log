@@ -25,9 +25,7 @@ Version contains large components (0.0.0.9000)
 * checking installed package size ... OK
 * checking package directory ... OK
 * checking DESCRIPTION meta-information ... OK
-* checking top-level files ... NOTE
-Non-standard file/directory found at top level:
-  ‘melviewr_0.0.0.9000.tar.gz’
+* checking top-level files ... OK
 * checking for left-over files ... OK
 * checking index information ... OK
 * checking package subdirectories ... OK
@@ -54,12 +52,8 @@ Non-standard file/directory found at top level:
 * checking Rd contents ... OK
 * checking for unstated dependencies in examples ... OK
 * checking examples ... NONE
-* checking PDF version of manual ... WARNING
-LaTeX errors when creating PDF version.
-This typically indicates Rd problems.
-* checking PDF version of manual without hyperrefs or index ... ERROR
-Re-running with no redirection of stdout/stderr.
+* checking PDF version of manual ... OK
 * checking for code which exercises the package ... WARNING
 No examples, no tests, no vignettes
 * DONE
-Status: 1 ERROR, 2 WARNINGs, 2 NOTEs
+Status: 1 WARNING, 1 NOTE

@@ -697,6 +697,7 @@ createViewrObject <- function() {
 #' @import gWidgets
 #' @import gWidgetsRGtk2
 #' @importFrom methods new
+#' @return NULL The function opens a GUI.
 melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     # Keep environment tidy
     old <- options(stringsAsFactors = FALSE)
