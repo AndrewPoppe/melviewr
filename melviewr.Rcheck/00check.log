@@ -8,7 +8,7 @@
 * this is package ‘melviewr’ version ‘0.0.0.9000’
 * package encoding: UTF-8
 * checking CRAN incoming feasibility ... NOTE
-Maintainer: ‘The package maintainer <yourself@somewhere.net>’
+Maintainer: ‘Andrew Poppe <Poppe076@gmail.com>’
 
 New submission
 
@@ -25,7 +25,9 @@ Version contains large components (0.0.0.9000)
 * checking installed package size ... OK
 * checking package directory ... OK
 * checking DESCRIPTION meta-information ... OK
-* checking top-level files ... OK
+* checking top-level files ... NOTE
+Non-standard file/directory found at top level:
+  ‘melviewr_0.0.0.9000.tar.gz’
 * checking for left-over files ... OK
 * checking index information ... OK
 * checking package subdirectories ... OK
@@ -41,49 +43,7 @@ Version contains large components (0.0.0.9000)
 * checking S3 generic/method consistency ... OK
 * checking replacement functions ... OK
 * checking foreign function calls ... OK
-* checking R code for possible problems ... NOTE
-.colorPickerHandler: no visible binding for '<<-' assignment to
-  ‘settings’
-.createGUI: no visible binding for '<<-' assignment to ‘win’
-.createGUI: no visible binding for '<<-' assignment to ‘widgets’
-.createGUI: no visible binding for global variable ‘.self’
-.createGUI : <anonymous>: no visible binding for global variable
-  ‘.self’
-.createGUI : <anonymous>: no visible binding for '<<-' assignment to
-  ‘settings’
-.createGUI : <anonymous>: no visible binding for '<<-' assignment to
-  ‘data’
-.createGUI : <anonymous>: no visible binding for '<<-' assignment to
-  ‘status’
-.drawBrains: no visible binding for '<<-' assignment to ‘widgets’
-.drawFrequency: no visible binding for '<<-' assignment to ‘widgets’
-.drawMotion: no visible binding for '<<-' assignment to ‘widgets’
-.drawTimeCourse: no visible binding for '<<-' assignment to ‘widgets’
-.getICADIR: no visible binding for '<<-' assignment to ‘data’
-.initializePlot: no visible binding for '<<-' assignment to ‘data’
-.initializePlot: no visible binding for '<<-' assignment to ‘widgets’
-.loadGraphicsSettings: no visible binding for global variable
-  ‘graphicsDefaults’
-.loadICADIR: no visible binding for '<<-' assignment to ‘widgets’
-.loadICADIR: no visible binding for '<<-' assignment to ‘data’
-.loadMotionFile: no visible binding for '<<-' assignment to ‘data’
-.loadMotionFile: no visible binding for '<<-' assignment to ‘widgets’
-.loadStandard: no visible binding for '<<-' assignment to ‘data’
-.restoreDefaultGraphicsSettings: no visible binding for '<<-'
-  assignment to ‘settings’
-.restoreDefaultGraphicsSettings: no visible binding for '<<-'
-  assignment to ‘status’
-.restoreDefaultGraphicsSettings: no visible binding for '<<-'
-  assignment to ‘widgets’
-.saveClassificationFile: no visible binding for global variable
-  ‘ClassName’
-.saveGraphicsSettings: no visible binding for global variable
-  ‘graphicsDefaults’
-.updateClassLabel: no visible binding for '<<-' assignment to ‘widgets’
-.updatePlots: no visible binding for '<<-' assignment to ‘widgets’
-.updatePlots: no visible binding for '<<-' assignment to ‘settings’
-Undefined global functions or variables:
-  .self ClassName graphicsDefaults
+* checking R code for possible problems ... OK
 * checking Rd files ... OK
 * checking Rd metadata ... OK
 * checking Rd line widths ... OK

@@ -2,8 +2,7 @@ Package: melviewr
 Type: Package
 Title: View and Classify MELODIC Output for ICA+FIX
 Version: 0.0.0.9000
-Author: Andrew Poppe
-Maintainer: The package maintainer <yourself@somewhere.net>
+Authors@R: person("Andrew", "Poppe", email = "Poppe076@gmail.com", role = c("aut", "cre"))
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL-3
@@ -14,4 +13,6 @@ Imports: gtools, RColorBrewer, RNifti, grDevices, RGtk2, cairoDevice,
 Depends: gWidgetsRGtk2, gWidgets
 RoxygenNote: 5.0.1
 NeedsCompilation: no
-Packaged: 2016-12-03 16:28:56 UTC; poppe076
+Packaged: 2016-12-03 20:45:18 UTC; poppe076
+Author: Andrew Poppe [aut, cre]
+Maintainer: Andrew Poppe <Poppe076@gmail.com>
