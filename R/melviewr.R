@@ -296,6 +296,11 @@ colorPicker <- function() {
     # Populate button group
     widgets$ButtonFrame <<- gframe("", horizontal = TRUE, container = widgets$buttonGroup)
     widgets$LoadButton <<- gbutton("Load ICA directory", container = widgets$ButtonFrame, handler = .self$getICADIR)
+    widgets$LoadStandardButton <<- gbutton("Load Standard File", container = widgets$ButtonFrame, handler = function(h, ...) {
+      data$STANDARDFILE <<- gfile(type = "open",
+                                initialfilename = paste0(Sys.getenv('FSLDIR'), '/data/standard/MNI152_T1_2mm_brain.nii.gz'))
+      loadStandard(data$STANDARDFILE)
+    })
     widgets$LoadMotionButton <<- gbutton("Load Motion File", container = widgets$ButtonFrame, handler = .self$loadMotionFile)
     widgets$SaveButton <<- gbutton("Save Classification File", container = widgets$ButtonFrame, handler = .self$saveClassificationFile)
     widgets$ExitButton <<- gbutton("Exit", container = widgets$ButtonFrame, handler = function(h, ...){
@@ -431,7 +436,7 @@ Until these conditions are met, timecourse and powerspectrum figures cannot be d
 # select an ICA directory
 .getICADIR <- function(...) {
     data$ICADIR <<- gfile(type = "selectdir", initialfilename = ".")
-    loadICADIR(ICADIR)
+    loadICADIR()
 }  # END getICADIR
 
 # handler for 'select color' buttons
@@ -464,21 +469,32 @@ creating timecourse and powerspectrum plots.")
 }  # End getTR
 
 # Load standard file data
-.loadStandard <- function(h, ...) {
+.loadStandard <- function(...) {
 
-    # find first and last slices that aren't all 0s
-    for (i in 1:dim(viewr$data$STANDARDDATA)[3]) {
-        if (!all(viewr$data$STANDARDDATA[, , i] == 0)) {
-            viewr$data$STARTSLICE <- i
-            (break)()
-        }
-    }
-    for (i in dim(viewr$data$STANDARDDATA)[3]:viewr$data$STARTSLICE) {
-        if (!all(viewr$data$STANDARDDATA[, , i] == 0)) {
-            viewr$data$ENDSLICE <- i
-            (break)()
-        }
-    }
+  standarddat <- RNifti::readNifti(data$STANDARDFILE)
+  if (!identical(dim(standarddat), data$MELDIM)) {
+    gmessage("The voxel dimensions of the standard Nifti file must match those of \
+the melodic_IC file in the ICA directory.", title = "Voxel Dimensions Match Error",
+             icon = "error")
+    return()
+  }
+
+  data$STANDARDDATA <<- standarddat
+
+  # find first and last slices that aren't all 0s
+  for (i in 1:dim(data$STANDARDDATA)[3]) {
+      if (!all(data$STANDARDDATA[, , i] == 0)) {
+          data$STARTSLICE <<- i
+          break()
+      }
+  }
+  for (i in dim(data$STANDARDDATA)[3]:data$STARTSLICE) {
+      if (!all(data$STANDARDDATA[, , i] == 0)) {
+          data$ENDSLICE <<- i
+          break()
+      }
+  }
+  updatePlots(NULL)
 }  # End loadStandard
 
 # End widget handlers definitions
@@ -645,33 +661,33 @@ testMotionFile <- function(motion_file) {
 # Function to initialize viewr object
 
 Viewr <- setRefClass("Viewr", fields = list(
-  win = "gWindow",
-  widgets = "list",
-  settings = "list",
-  status = "list",
-  data = "list"
-), methods = list(
-  createGUI = .createGUI,
-  drawFrequency = .drawFrequency,
-  drawMotion = .drawMotion,
-  drawTimeCourse = .drawTimeCourse,
-  drawTimeFigures = .drawTimeFigures,
-  drawBrains = .drawBrains,
-  initializePlot = .initializePlot,
-  loadStandard = .loadStandard,
-  getTR = .getTR,
-  colorPickerHandler = .colorPickerHandler,
-  getICADIR = .getICADIR,
-  loadICADIR = .loadICADIR,
-  saveClassificationFile = .saveClassificationFile,
-  loadClassificationFile = .loadClassificationFile,
-  loadMotionFile = .loadMotionFile,
-  updateClassLabel = .updateClassLabel,
-  updatePlots = .updatePlots,
-  saveGraphicsSettings = .saveGraphicsSettings,
-  loadGraphicsSettings = .loadGraphicsSettings,
-  restoreDefaultGraphicsSettings = .restoreDefaultGraphicsSettings
-)
+    win = "gWindow",
+    widgets = "list",
+    settings = "list",
+    status = "list",
+    data = "list"
+  ), methods = list(
+    createGUI = .createGUI,
+    drawFrequency = .drawFrequency,
+    drawMotion = .drawMotion,
+    drawTimeCourse = .drawTimeCourse,
+    drawTimeFigures = .drawTimeFigures,
+    drawBrains = .drawBrains,
+    initializePlot = .initializePlot,
+    loadStandard = .loadStandard,
+    getTR = .getTR,
+    colorPickerHandler = .colorPickerHandler,
+    getICADIR = .getICADIR,
+    loadICADIR = .loadICADIR,
+    saveClassificationFile = .saveClassificationFile,
+    loadClassificationFile = .loadClassificationFile,
+    loadMotionFile = .loadMotionFile,
+    updateClassLabel = .updateClassLabel,
+    updatePlots = .updatePlots,
+    saveGraphicsSettings = .saveGraphicsSettings,
+    loadGraphicsSettings = .loadGraphicsSettings,
+    restoreDefaultGraphicsSettings = .restoreDefaultGraphicsSettings
+  )
 )
 
 createViewrObject <- function() {
@@ -752,7 +768,10 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     # test validity of inputs
     melodic_dir <- normalizePath(melodic_dir)
     testICADIR(melodic_dir)
-    if (!is.null(standard_file)) testStandardFile(standard_file)
+    if (!is.null(standard_file)) {
+      testStandardFile(standard_file)
+      viewr$data$STANDARDFILE <- standard_file
+    }
     if (!is.null(motion_file))   testMotionFile(motion_file)
 
     # move to melodic dir (might not be necessary)
@@ -764,6 +783,7 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
 
     viewr$createGUI()
     viewr$loadICADIR()
+    if (!is.null(standard_file)) viewr$loadStandard()
 
     waitForExit <- function(...) {
       while (!viewr$status$exit) {
