@@ -1,0 +1,6 @@
+Error in texi2dvi(file = file, pdf = TRUE, clean = clean, quiet = quiet,  : 
+  pdflatex is not available
+Error in texi2dvi(file = file, pdf = TRUE, clean = clean, quiet = quiet,  : 
+  pdflatex is not available
+Error in running tools::texi2pdf()
+You may want to clean up by 'rm -rf /var/folders/pn/zzjj6sp92hn_qg479rv_r5l80000gn/T//RtmpSYXotO/Rd2pdf7966cd32c94'

@@ -1,7 +1,5 @@
 
-# Make globals to appease R CMD Check Notes
-if (getRversion() >= "2.15.1")
-  utils::globalVariables(c('settings', 'win', 'widgets', '.self', 'data', 'status'))
+
 
 #==============================================================================#
 # Functions for saving/loading graphics settings
@@ -663,13 +661,6 @@ testMotionFile <- function(motion_file) {
 #==============================================================================#
 # Function to initialize viewr object
 
-#' A Reference Class that represents the melviewr GUI and all its data
-#'
-#' @field win An instance of a gwidgets gwindow.
-#' @field widgets A list to hold gwidgets widgets.
-#' @field settings A list to hold graphics settings and defaults.
-#' @field status A list to hold state-related status information.
-#' @field data A list to hold all necessary data the GUI uses.
 Viewr <- setRefClass("Viewr", fields = list(
     win = "gWindow",
     widgets = "list",
@@ -768,6 +759,10 @@ createViewrObject <- function() {
 #' @import gWidgetsRGtk2
 #' @importFrom methods new
 melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
+  # Make globals to appease R CMD Check Notes
+  if (getRversion() >= "2.15.1")
+    globs <- utils::globalVariables(c('settings', 'win', 'widgets', '.self', 'data', 'status'))
+
     # Keep environment tidy
     old <- options(stringsAsFactors = FALSE)
     on.exit(options(old), add = TRUE)
