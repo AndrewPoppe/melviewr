@@ -16,6 +16,9 @@ of the same voxel dimensions as the melodic output}
 should have one column and as many rows as there are volumes in the functional
 data}
 }
+\value{
+NULL The function opens a GUI.
+}
 \description{
 View and Classify Components from a Melodic Analysis
 }
