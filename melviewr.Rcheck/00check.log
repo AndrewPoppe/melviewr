@@ -8,7 +8,7 @@
 * this is package ‘melviewr’ version ‘0.0.0.9000’
 * package encoding: UTF-8
 * checking CRAN incoming feasibility ... NOTE
-Maintainer: ‘The package maintainer <yourself@somewhere.net>’
+Maintainer: ‘Andrew Poppe <Poppe076@gmail.com>’
 
 New submission
 
@@ -41,49 +41,7 @@ Version contains large components (0.0.0.9000)
 * checking S3 generic/method consistency ... OK
 * checking replacement functions ... OK
 * checking foreign function calls ... OK
-* checking R code for possible problems ... NOTE
-.colorPickerHandler: no visible binding for '<<-' assignment to
-  ‘settings’
-.createGUI: no visible binding for '<<-' assignment to ‘win’
-.createGUI: no visible binding for '<<-' assignment to ‘widgets’
-.createGUI: no visible binding for global variable ‘.self’
-.createGUI : <anonymous>: no visible binding for global variable
-  ‘.self’
-.createGUI : <anonymous>: no visible binding for '<<-' assignment to
-  ‘settings’
-.createGUI : <anonymous>: no visible binding for '<<-' assignment to
-  ‘data’
-.createGUI : <anonymous>: no visible binding for '<<-' assignment to
-  ‘status’
-.drawBrains: no visible binding for '<<-' assignment to ‘widgets’
-.drawFrequency: no visible binding for '<<-' assignment to ‘widgets’
-.drawMotion: no visible binding for '<<-' assignment to ‘widgets’
-.drawTimeCourse: no visible binding for '<<-' assignment to ‘widgets’
-.getICADIR: no visible binding for '<<-' assignment to ‘data’
-.initializePlot: no visible binding for '<<-' assignment to ‘data’
-.initializePlot: no visible binding for '<<-' assignment to ‘widgets’
-.loadGraphicsSettings: no visible binding for global variable
-  ‘graphicsDefaults’
-.loadICADIR: no visible binding for '<<-' assignment to ‘widgets’
-.loadICADIR: no visible binding for '<<-' assignment to ‘data’
-.loadMotionFile: no visible binding for '<<-' assignment to ‘data’
-.loadMotionFile: no visible binding for '<<-' assignment to ‘widgets’
-.loadStandard: no visible binding for '<<-' assignment to ‘data’
-.restoreDefaultGraphicsSettings: no visible binding for '<<-'
-  assignment to ‘settings’
-.restoreDefaultGraphicsSettings: no visible binding for '<<-'
-  assignment to ‘status’
-.restoreDefaultGraphicsSettings: no visible binding for '<<-'
-  assignment to ‘widgets’
-.saveClassificationFile: no visible binding for global variable
-  ‘ClassName’
-.saveGraphicsSettings: no visible binding for global variable
-  ‘graphicsDefaults’
-.updateClassLabel: no visible binding for '<<-' assignment to ‘widgets’
-.updatePlots: no visible binding for '<<-' assignment to ‘widgets’
-.updatePlots: no visible binding for '<<-' assignment to ‘settings’
-Undefined global functions or variables:
-  .self ClassName graphicsDefaults
+* checking R code for possible problems ... OK
 * checking Rd files ... OK
 * checking Rd metadata ... OK
 * checking Rd line widths ... OK
@@ -94,12 +52,8 @@ Undefined global functions or variables:
 * checking Rd contents ... OK
 * checking for unstated dependencies in examples ... OK
 * checking examples ... NONE
-* checking PDF version of manual ... WARNING
-LaTeX errors when creating PDF version.
-This typically indicates Rd problems.
-* checking PDF version of manual without hyperrefs or index ... ERROR
-Re-running with no redirection of stdout/stderr.
+* checking PDF version of manual ... OK
 * checking for code which exercises the package ... WARNING
 No examples, no tests, no vignettes
 * DONE
-Status: 1 ERROR, 2 WARNINGs, 2 NOTEs
+Status: 1 WARNING, 1 NOTE
