@@ -347,7 +347,11 @@ colorPicker <- function() {
     if (is.na(motionfile))
         return()
     data$MOTIONFILE <<- motionfile
-    data$MOTIONDATA <<- read.table(motionfile)[[1]]
+    motiondata <- read.table(motionfile)
+    if (ncol(motiondata) > 1) gmessage("The file you selected has multiple columns. \
+Are you sure it is a summarized motion file and not a file with separate columns \
+for movement in the x, y, and z directions?", title = "Warning", icon = "warning", parent = win)
+    data$MOTIONDATA <<- motiondata[[1]]
     enabled(widgets$ShowMotionCheckbox) <<- TRUE
     enabled(widgets$MotionOptionsToggle) <<- TRUE
     svalue(widgets$ShowMotionCheckbox) <<- TRUE
