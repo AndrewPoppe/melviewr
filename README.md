@@ -11,7 +11,7 @@ This package is an attempt to reimplement the [Melview](http://fsl.fmrib.ox.ac.u
 Installation
 ------------
 
-As of now, this package has not been accepted into [CRAN](https://cran.r-project.org/web/packages/), so the best way to install it is first make sure that [GTK](https://www.gtk.org/) is installed on your system. Next, open `R` either in a terminal or through [RStudio]() and type the following:
+As of now, this package has not been accepted into [CRAN](https://cran.r-project.org/web/packages/), so the best way to install it is first make sure that [GTK](https://www.gtk.org/) is installed on your system. Next, open `R` either in a terminal or through [RStudio](https://www.rstudio.com/) and type the following:
 ```r
 install.packages('devtools', dependencies = TRUE)
 install_github('AndrewPoppe/melviewr')
