@@ -266,7 +266,7 @@ Viewr <- setRefClass("Viewr", fields = list(
                                     initialfilename = paste0(Sys.getenv('FSLDIR'), '/data/standard/MNI152_T1_2mm_brain.nii.gz'))
         loadStandard(data$STANDARDFILE)
       })
-      widgets$LoadMotionButton <<- gbutton("Load Motion File", container = widgets$ButtonFrame, handler = .self$loadMotionFile)
+      widgets$LoadMotionButton <<- gbutton("Load Motion File", container = widgets$ButtonFrame, handler = .self$getMotionFile)
       widgets$SaveButton <<- gbutton("Save Classification File", container = widgets$ButtonFrame, handler = .self$saveClassificationFile)
       widgets$ExitButton <<- gbutton("Exit", container = widgets$ButtonFrame, handler = function(h, ...){
         status$exit <<- TRUE
@@ -354,7 +354,7 @@ Viewr <- setRefClass("Viewr", fields = list(
       for (i in sliceIndices) {
         if (!is.null(data$STANDARDDATA)) {
           graphics::image(data$STANDARDDATA[, , i], col = braincols, axes = F,
-                          useRaster = T, zlim = c(23, max(data$STANDARDDATA[, , i])))
+                          useRaster = T, zlim = c(.1, max(data$STANDARDDATA[, , i])))
         } else {
           graphics::plot.new()
         }
@@ -507,21 +507,26 @@ Viewr <- setRefClass("Viewr", fields = list(
       }
       return(output)
     },
-    loadMotionFile = function(h, ...) {
+    getMotionFile = function(h, ...) {
       initialfilename <- ifelse(file.exists("../../Movement_RelativeRMS.txt"), "../../Movement_RelativeRMS.txt", ".")
       motionfile <- gfile("Select Motion File", type = "open", initialfilename = initialfilename)
       if (is.na(motionfile))
         return()
+      loadMotionFile(motionfile)
+    },
+    loadMotionFile = function(motionfile) {
       data$MOTIONFILE <<- motionfile
       motiondata <- utils::read.table(motionfile)
       if (ncol(motiondata) > 1) gmessage("The file you selected has multiple columns. \
                                          Are you sure it is a summarized motion file and not a file with separate columns \
                                          for movement in the x, y, and z directions?", title = "Warning", icon = "warning", parent = win)
       data$MOTIONDATA <<- motiondata[[1]]
-      enabled(widgets$ShowMotionCheckbox) <<- TRUE
-      enabled(widgets$MotionOptionsToggle) <<- TRUE
-      svalue(widgets$ShowMotionCheckbox) <<- TRUE
-      drawTimeFigures(svalue(widgets$CompTable))
+        if (!is.null(widgets$ShowMotionCheckbox)) {
+        enabled(widgets$ShowMotionCheckbox) <<- TRUE
+        enabled(widgets$MotionOptionsToggle) <<- TRUE
+        svalue(widgets$ShowMotionCheckbox) <<- TRUE
+        drawTimeFigures(svalue(widgets$CompTable))
+      }
     },
     updateClassLabel = function(h, ...) {
       compNum <- as.numeric(svalue(widgets$MainPlotLabel))
@@ -672,7 +677,8 @@ createViewrObject <- function() {
 #' melviewr
 #'
 #' View and Classify Components from a Melodic Analysis
-#' @param melodic_dir string Path to MELODIC output directory
+#' @param melodic_dir string Path to MELODIC output directory. This directory
+#' must include a melodic_IC.nii or melodic_IC.nii.gz file.
 #' @param standard_file string Optional path to a 3-dimensional Nifti standard file
 #' of the same voxel dimensions as the melodic output
 #' @param motion_file string Optional path to a summary motion text file. This file
@@ -682,7 +688,15 @@ createViewrObject <- function() {
 #' @import gWidgets
 #' @import gWidgetsRGtk2
 #' @importFrom methods new
-#' @return NULL The function opens a GUI.
+#' @return Invisibly returns a reference class object of class "Viewr"
+#' @examples \dontrun{
+#' melodic_dir <- system.file("extdata", "example.ica", package = "melviewr")
+#' standard_file <- system.file("extdata", "MNI152_T1_2mm_brain.nii.gz", package = "melviewr")
+#' motion_file <- system.file("extdata", "Movement_RelativeRMS.txt", package = "melviewr")
+#' melviewr(melodic_dir)
+#' melviewr(melodic_dir, standard_file)
+#' melviewr(melodic_dir, standard_file, motion_file)
+#' }
 melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     # Keep environment tidy
     old <- options(stringsAsFactors = FALSE)
@@ -697,10 +711,13 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     testICADIR(melodic_dir)
     if (!is.null(standard_file)) {
       testStandardFile(standard_file)
-      viewr$data$STANDARDFILE <- standard_file
+      viewr$data$STANDARDFILE <- normalizePath(standard_file)
     }
-    if (!is.null(motion_file))   testMotionFile(motion_file)
-
+    if (!is.null(motion_file)) {
+      testMotionFile(motion_file)
+      viewr$data$MOTIONFILE <- normalizePath(motion_file)
+      viewr$loadMotionFile(viewr$data$MOTIONFILE)
+    }
     # move to melodic dir (might not be necessary)
     oldwd <- setwd(melodic_dir)
     on.exit(setwd(oldwd), add = TRUE)
