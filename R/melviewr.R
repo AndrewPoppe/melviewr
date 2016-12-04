@@ -3,20 +3,6 @@
 if (getRversion() >= "2.15.1")
   utils::globalVariables(c('settings', 'win', 'widgets', '.self', 'data', 'status'))
 
-#==============================================================================#
-# Functions for saving/loading graphics settings
-
-
-# TODO: Find where to put these lines:
-# Attempt to load saved graphics settings.  If unable, load defaults.
-#if (!loadGraphicsSettings()) {
-#  restoreDefaultGraphicsSettings()
-#}
-
-# End graphics settings functions
-#==============================================================================#
-
-
 
 #==============================================================================#
 # Function for creating color picker modal
@@ -200,22 +186,22 @@ Viewr <- setRefClass("Viewr", fields = list(
       # Populate Graphics Frame
       widgets$GraphicsTable <<- glayout(container = widgets$GraphicsFrame)
       widgets$GraphicsTable[1, 1] <<- glabel("# Columns:", container = widgets$GraphicsTable)
-      widgets$ColNumInput <<- gcombobox(1:100, selected = settings$graphicsDefaults$numBrainCols, container = widgets$GraphicsTable,
+      widgets$ColNumInput <<- gcombobox(1:100, selected = settings$graphics$numBrainCols, container = widgets$GraphicsTable,
                                         handler = .self$updatePlots)
       widgets$GraphicsTable[1, 2] <<- widgets$ColNumInput
       widgets$GraphicsTable[2, 1] <<- glabel("Skip Slices:", container = widgets$GraphicsTable)
-      widgets$SkipInput <<- gcombobox(1:100, selected = settings$graphicsDefaults$skipSlices, container = widgets$GraphicsTable,
+      widgets$SkipInput <<- gcombobox(1:100, selected = settings$graphics$skipSlices, container = widgets$GraphicsTable,
                                       handler = .self$updatePlots)
       widgets$GraphicsTable[2, 2] <<- widgets$SkipInput
       widgets$GraphicsTable[3, 1] <<- glabel("Threshold: +/-", container = widgets$GraphicsTable)
       widgets$ThresholdInput <<- gedit("2.3", container = widgets$GraphicsTable, handler = .self$updatePlots)
       widgets$GraphicsTable[3, 2] <<- widgets$ThresholdInput
       widgets$GraphicsTable[4, 1] <<- glabel("Brain darkness:", container = widgets$GraphicsTable)
-      widgets$BrainColSlider <<- gspinbutton(from = 0, to = 1, by = 0.2, value = settings$graphicsDefaults$brainColValue,
+      widgets$BrainColSlider <<- gspinbutton(from = 0, to = 1, by = 0.2, value = settings$graphics$brainColValue,
                                              container = widgets$GraphicsTable, handler = .self$updatePlots)
       widgets$GraphicsTable[4, 2] <<- widgets$BrainColSlider
       widgets$GraphicsTable[5, 1] <<- glabel("Background darkness:", container = widgets$GraphicsTable)
-      widgets$BackgroundSlider <<- gspinbutton(from = 0, to = 100, by = 20, value = settings$graphicsDefaults$brainBackgroundValue,
+      widgets$BackgroundSlider <<- gspinbutton(from = 0, to = 100, by = 20, value = settings$graphics$brainBackgroundValue,
                                                container = widgets$GraphicsTable, handler = .self$updatePlots)
       widgets$GraphicsTable[5, 2] <<- widgets$BackgroundSlider
       widgets$ShowMotionCheckbox <<- gcheckbox("Show Motion Plot", checked = !is.null(data$MOTIONFILE),
@@ -501,7 +487,6 @@ Viewr <- setRefClass("Viewr", fields = list(
       }
 
       data$TR <<- getTR()
-
       initializePlot()
     },
     saveClassificationFile = function(...) {
@@ -571,13 +556,9 @@ Viewr <- setRefClass("Viewr", fields = list(
     saveGraphicsSettings = function(h, ...) {
       "Saves graphics options to a file in the User's HOME directory."
       tryCatch({
-        configFile <- paste(Sys.getenv('HOME'), "/.melviewR.config", sep = "")
+        configFile <- paste0(Sys.getenv('HOME'), "/.melviewR.config")
         sink(configFile)
-        for (i in 1:length(graphicsDefaults)) {
-          val <- eval(parse(text = names(graphicsDefaults)[i]))
-          sepChar <- ifelse(is.character(val), "\"", "")
-          cat(paste(names(graphicsDefaults)[i], " <<- ", sepChar, val, sepChar, "\n", sep = ""))
-        }
+        cat(jsonlite::toJSON(settings$graphics))
         sink()
         output <- list(messageTxt = paste("Config file has been saved to:", configFile), icon = "info")
         gmessage(output$messageTxt, title = "Save Graphics Settings", icon = output$icon)
@@ -598,15 +579,23 @@ Viewr <- setRefClass("Viewr", fields = list(
       configFile <- paste0(Sys.getenv('HOME'), "/.melviewR.config")
       configLoaded <- FALSE
       if (file.exists(configFile)) {
-        source(configFile)
-        configLoaded <- TRUE
-        # if any graphics options are not set in the config file, set them to their default state.
-        for (i in 1:length(graphicsDefaults)) {
-          if (!exists(names(graphicsDefaults[i]))) {
-            assign(names(graphicsDefaults)[i], graphicsDefaults[[i]], inherits = TRUE)
+        tryCatch({
+          newSettings <- jsonlite::fromJSON(configFile)
+          settings$graphics <<- newSettings
+          # if any graphics options are not set in the config file, set them to their default state.
+          for (thisSetting in names(settings$graphicsDefaults)) {
+            if (is.null(newSettings[[thisSetting]])) {
+              settings$graphics <<- settings$graphicsDefaults[[thisSetting]]
+            }
           }
-        }
-
+          configLoaded <- TRUE
+        }, warning = function(war) {
+          gmessage(paste("Warning while loading saved graphics settings:", war),
+                   icon = 'warning', title = 'Warning')
+        }, error = function(err) {
+          gmessage(paste("Error while loading saved graphics settings:", err),
+                   icon = 'error', title = 'Error')
+        })
       }
       return(configLoaded)
     },
@@ -722,6 +711,10 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
 
     # Begin loading data
     viewr$data$ICADIR <- melodic_dir
+
+    if (!viewr$loadGraphicsSettings())
+      viewr$settings$graphics <- viewr$settings$graphicDefaults
+
 
     viewr$createGUI()
     viewr$loadICADIR()

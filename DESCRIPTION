@@ -15,7 +15,8 @@ Imports:
     grDevices,
     RGtk2,
     cairoDevice,
-    methods
+    methods,
+    jsonlite
 Depends:
     gWidgetsRGtk2,
     gWidgets
