@@ -1,8 +1,4 @@
 
-# Make globals to appease R CMD Check Notes
-if (getRversion() >= "2.15.1")
-  utils::globalVariables(c('settings', 'win', 'widgets', '.self', 'data', 'status'))
-
 
 #==============================================================================#
 # Function for creating color picker modal
