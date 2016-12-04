@@ -386,8 +386,7 @@ Viewr <- setRefClass("Viewr", fields = list(
         if (!is.null(prevClass) && nrow(prevClass) == nrow(widgets$CompTable[]))
           widgets$CompTable[] <<- prevClass
       }
-      if (is.null(data$HANDLERID))
-        data$HANDLERID <<- addHandlerClicked(widgets$CompTable, handler = updatePlots)
+      addHandlerClicked(widgets$CompTable, handler = updatePlots)
     },
     loadStandard = function(...) {
 
@@ -443,7 +442,6 @@ Viewr <- setRefClass("Viewr", fields = list(
     },
     getICADIR =  function(...) {
       data$ICADIR <<- gfile(type = "selectdir", initialfilename = ".")
-      testICADIR(data$ICADIR)
       loadICADIR()
     },
     loadICADIR = function() {
@@ -663,8 +661,7 @@ createViewrObject <- function() {
       TIMEDATFILES = NULL,
       FREQDATFILES = NULL,
       STARTSLICE = NULL,
-      ENDSLICE = NULL,
-      HANDLERID = NULL
+      ENDSLICE = NULL
     )
   )
   names(viewr$data$COMPTABLE) <- c("IC", "ClassName", "To_Remove")

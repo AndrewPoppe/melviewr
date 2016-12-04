@@ -2,7 +2,7 @@ Package: melviewr
 Type: Package
 Title: View and Classify MELODIC Output for ICA+FIX
 Version: 0.0.0.9000
-Authors@R: person("Andrew", "Poppe", email = "Poppe076@gmail.com", role = c("aut", "cre"))
+Authors@R: person("Andrew", "Poppe", email = "Poppe076 at gmail.com", role = c("aut", "cre"))
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL-3
