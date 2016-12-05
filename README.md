@@ -27,6 +27,12 @@ install.packages('devtools', dependencies = TRUE)
 install_github('AndrewPoppe/melviewr')
 ```
 
+You can also specify a particular release version when installing from github by appending a `@` and the release tag name, i.e.:
+```r
+install_github('AndrewPoppe/melviewr@v0.0.1')
+```
+Release tag names can be found by clicking on the `Releases` link on this page.
+
 
 Other Usage
 -----------
