@@ -59,7 +59,7 @@ library(melviewr)
 motion_file <- NULL
 standard_file <- NULL
 
-if (length(args) > 1) {
+if (length(args) > 2) {
 	for (i in 2:(length(args)-1)) {
 		if (args[i] == "-std") standard_file <- args[i + 1]
 		if (args[i] == "-mot") motion_file <- args[i + 1]
