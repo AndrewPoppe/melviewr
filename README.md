@@ -75,4 +75,4 @@ melviewr(args[1], standard_file, motion_file)
 Getting Help
 ------------
 
-Please email Andrew Poppe at Poppe076 at gmail.com
+Please email Andrew Poppe at `Poppe076 at gmail.com`
