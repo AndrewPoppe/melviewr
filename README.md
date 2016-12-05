@@ -11,10 +11,9 @@ This package is an attempt to reimplement the [Melview](http://fsl.fmrib.ox.ac.u
 Installation
 ------------
 
-As of now, this package has not been accepted into [CRAN](https://cran.r-project.org/web/packages/), so the best way to install it is first make sure that [GTK](https://www.gtk.org/) is installed on your system. Next, open `R` either in a terminal or through [RStudio](https://www.rstudio.com/) and type the following:
+Stable releases of the `melviewr` package can be installed from the [CRAN](https://cran.r-project.org/web/packages/) repository. First, make sure that [GTK](https://www.gtk.org/) is installed on your system. Next, open `R` either in a terminal or through [RStudio](https://www.rstudio.com/) and type the following:
 ```r
-install.packages('devtools', dependencies = TRUE)
-install_github('AndrewPoppe/melviewr')
+install.packages('melviewr', dependencies = TRUE)
 ```
 To view examples of how to use the GUI, do:
 ```r
@@ -22,10 +21,12 @@ library(melviewr)
 ?melviewr
 ```
 
-Once the package is accepted to CRAN, it can be installed with the following:
+You can install the most up-to-date version of the package by doing the following in R:
 ```r
-install.packages('melviewr', dependencies = TRUE)
+install.packages('devtools', dependencies = TRUE)
+install_github('AndrewPoppe/melviewr')
 ```
+
 
 Other Usage
 -----------
