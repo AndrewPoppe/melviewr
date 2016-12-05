@@ -1,7 +1,7 @@
 Package: melviewr
 Type: Package
 Title: View and Classify MELODIC Output for ICA+FIX
-Version: 0.0.2
+Version: 0.0.1
 Authors@R: person("Andrew", "Poppe", email = "Poppe076@gmail.com", role = c("aut", "cre"))
 Description: Provides a graphical interface that allows the user to easily view 
     and classify output from MELODIC, a part of the FSL neuroimaging analysis
