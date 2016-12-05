@@ -27,6 +27,51 @@ Once the package is accepted to CRAN, it can be installed with the following:
 install.packages('melviewr', dependencies = TRUE)
 ```
 
+Other Usage
+-----------
+
+In addition to running the command from within R interactively, you can also write a shell script to open the GUI directly from the terminal. Something like the following should work, assuming `melviewr` has already been installed.
+
+```r
+#! /usr/bin/env Rscript
+
+args <- commandArgs(TRUE)
+
+if (length(args) == 0) {
+	writeLines("
+melviewr: A MELODIC Viewer
+
+Usage: melviewr <melodic output directory> -mot <motion file> -std <standard>
+
+    -mot    Optional. The path to a single column motion file, such as a 
+            Relative RMS or a column of FD values.
+    -std    Optional. The path to a standard Nifti file on which to display the 
+            MELODIC results. The voxel dimensions of this file must match those 
+            of the melodic_IC.nii.gz file within the melodic output directory.
+
+For more information, visit https://github.com/AndrewPoppe/melviewr
+")
+	q()
+}
+
+library(melviewr)
+
+motion_file <- NULL
+standard_file <- NULL
+
+if (length(args) > 1) {
+	for (i in 2:(length(args)-1)) {
+		if (args[i] == "-std") standard_file <- args[i + 1]
+		if (args[i] == "-mot") motion_file <- args[i + 1]
+	}
+}
+		
+melviewr(args[1], standard_file, motion_file)
+
+
+```
+
+
 Getting Help
 ------------
 
