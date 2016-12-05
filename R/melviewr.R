@@ -740,7 +740,7 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     viewr$data$ICADIR <- melodic_dir
 
     if (!viewr$loadGraphicsSettings())
-      viewr$settings$graphics <- viewr$settings$graphicDefaults
+      viewr$settings$graphics <- viewr$settings$graphicsDefaults
 
 
     viewr$createGUI()
