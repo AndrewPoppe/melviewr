@@ -30,7 +30,7 @@ install.packages('melviewr', dependencies = TRUE)
 Other Usage
 -----------
 
-In addition to running the command from within R interactively, you can also write a shell script to open the GUI directly from the terminal. Something like the following should work, assuming `melviewr` has already been installed.
+In addition to running the command from within R interactively, you can also write a shell script to open the GUI directly from the terminal. Something like the following should work, assuming `melviewr` has already been installed. Just save the following code to a file called "melviewr" and use `chmod` to make it executable. Then, put it somewhere in your `PATH`.
 
 ```r
 #! /usr/bin/env Rscript
