@@ -31,7 +31,7 @@ You can also specify a particular release version when installing from github by
 ```r
 install_github('AndrewPoppe/melviewr@v0.0.1')
 ```
-Release tag names can be found by clicking on the `Releases` link on this page.
+Release tag names can be found by clicking on the ![Releases](http://i.imgur.com/z4BSysX.png) link on this page.
 
 
 Other Usage
