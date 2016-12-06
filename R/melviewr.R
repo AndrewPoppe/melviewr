@@ -713,9 +713,8 @@ createViewrObject <- function() {
 #' melviewr(melodic_dir, standard_file, motion_file)}
 melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     # Keep environment tidy
-    old <- options(stringsAsFactors = FALSE)
+    old <- options(guiToolkit = "RGtk2")
     on.exit(options(old), add = TRUE)
-    options(guiToolkit = "RGtk2")
 
     # make viewr object
     viewr <- createViewrObject()
