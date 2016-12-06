@@ -720,8 +720,8 @@ melviewr <- function(melodic_dir, standard_file = NULL, motion_file = NULL) {
     viewr <- createViewrObject()
 
     # test validity of inputs
-    melodic_dir <- normalizePath(melodic_dir)
     testICADIR(melodic_dir)
+    melodic_dir <- normalizePath(melodic_dir)
     if (!is.null(standard_file)) {
       testStandardFile(standard_file)
       viewr$data$STANDARDFILE <- normalizePath(standard_file)
