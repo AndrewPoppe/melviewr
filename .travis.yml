@@ -1,7 +1,7 @@
 language: r
 cache: packages
 matrix:
-addons:
+  addons:
     apt:
       packages:
         - libgdal-dev
