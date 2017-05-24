@@ -1,8 +1,0 @@
-language: r
-cache: packages
-addons:
-  apt:
-    packages:
-      - libgtk-3-dev
-      - r-cran-cairodevice
-      - r-cran-rgtk2
