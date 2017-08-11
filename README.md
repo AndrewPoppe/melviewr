@@ -1,4 +1,7 @@
 # melviewr
+
+[![Rdoc](http://www.rdocumentation.org/badges/version/melviewr)](http://www.rdocumentation.org/packages/melviewr)
+
 ==========================
 
 Overview
